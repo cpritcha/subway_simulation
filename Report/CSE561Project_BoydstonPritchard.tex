@@ -1,0 +1,91 @@
+\documentclass[12pt]{article}
+\usepackage[explicit]{titlesec}
+\usepackage[margin=0.75in]{geometry}
+\usepackage{fancyhdr}
+\usepackage{fontspec}
+\usepackage{scrextend}
+\usepackage{listings}
+\usepackage{graphicx}
+\usepackage{graphics}
+\usepackage{amssymb}
+\usepackage{longtable}
+\usepackage{hyperref}
+\usepackage[section]{placeins}
+\usepackage[dvipsnames,svgnames]{xcolor}
+\usepackage{ulem}
+\usepackage{pdfpages}
+\usepackage{cite}
+\usepackage{amsmath}
+\usepackage{mathtools}
+
+\setmainfont{Cambria}
+%\doublespacing
+\pagestyle{fancy}
+\rfoot{\thepage}
+\cfoot{\today}
+\lhead{}
+\rhead{}
+\fancyhead[CO]{\textit{CSE 561: Modeling \& Simulation Theory and Applications}}
+\fancyhead[CE]{\textit{Jacob Boydston and Calvin Pritchard}}
+
+\titleformat{\section}
+{\normalfont\Large\bfseries}{}{0em}{\colorbox[RGB]{79,129,189}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{\textcolor{white}{\thesection\quad\MakeUppercase{#1}}}}}
+
+\titleformat{name=\section,numberless}
+{\normalfont\Large\bfseries}{}{0em}{\colorbox[RGB]{79,129,189}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{\textcolor{white}{\MakeUppercase{#1}}}}}
+
+\titleformat{\subsection}
+{\normalfont\Large\bfseries}{}{0em}{\colorbox[RGB]{219,229,241}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{\textcolor{black}{\thesubsection\quad\MakeUppercase{#1}}}}}
+
+\begin{document}
+	
+\author{
+	Jacob Boydston\\Online
+	\and
+	Calvin Pritchard\\In-Person
+}
+\title{Modeling of a Subterranean Rail Transport Network}
+\date{}
+
+\maketitle
+\thispagestyle{fancy}
+
+\tableofcontents
+
+\begin{table*}[htb]
+\centering
+\begin{tabular}{|l|c|c|}
+
+\hline
+\textbf{List of Tasks} & \textbf{Jacob \% Effort} & \textbf{Calvin \% Effort} \\
+\hline
+1. Introduction & & \\
+\hline
+2. Problem Description & & \\
+\hline
+3. Approach & & \\
+\hline
+\quad 3.1 Model Development & & \\
+\hline
+\quad 3.2 Experimental Setups \& Experiments & & \\
+\hline
+4. Results & & \\
+\hline
+5. Conclusions & & \\
+\hline
+6. References & & \\
+\hline
+Appendices & & \\
+\hline
+
+
+\end{tabular}
+\end{table*}
+
+\begin{abstract}
+	Enter abstract text here.
+\end{abstract}
+
+\input{introduction.tex}
+	
+\end{document}
