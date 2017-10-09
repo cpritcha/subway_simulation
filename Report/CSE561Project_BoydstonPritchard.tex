@@ -37,6 +37,8 @@
 \titleformat{\subsection}
 {\normalfont\Large\bfseries}{}{0em}{\colorbox[RGB]{219,229,241}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{\textcolor{black}{\thesubsection\quad\MakeUppercase{#1}}}}}
 
+\newcommand{\code}[1]{\texttt{#1}}
+
 \begin{document}
 	
 \author{
@@ -79,12 +81,12 @@ Appendices & 50 & 50 \\
 \end{tabular}
 \end{table*}
 
-%\tableofcontents
+\tableofcontents
 
-%\begin{abstract}
-%	Enter abstract text here.
-%\end{abstract}
+\begin{abstract}
+	Enter abstract text here.
+\end{abstract}
 
-%\input{introduction.tex}
-	
+\input{introduction.tex}
+
 \end{document}
