@@ -126,12 +126,14 @@ venv.bak/
 # mypy
 .mypy_cache/
 
-# Unnecessary tec files
+# Unnecessary tex files
 /Report/*.aux
 /Report/*.out
 /Report/*.pdf
 /Report/*.gz
 /Report/*.toc
+/Report/*.bbl
+/Report/*.blg
 
 # End of https://www.gitignore.io/api/java,python
 
