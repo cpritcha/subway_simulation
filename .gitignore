@@ -134,3 +134,14 @@ venv.bak/
 /Report/*.toc
 
 # End of https://www.gitignore.io/api/java,python
+
+# LaTeX Specific
+
+*.aux
+*.out
+*.toc
+*.synctex.gz
+
+# Derived outputs
+
+*.pdf
