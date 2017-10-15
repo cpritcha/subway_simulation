@@ -1,4 +1,5 @@
 \documentclass[12pt]{article}
+\usepackage{booktabs}
 \usepackage[explicit]{titlesec}
 \usepackage[margin=0.75in]{geometry}
 \usepackage{fancyhdr}
@@ -18,6 +19,7 @@
 \usepackage{amsmath}
 \usepackage{mathtools}
 \usepackage{tikz}
+\allowdisplaybreaks
 \usetikzlibrary{arrows,shapes,snakes,automata,backgrounds,petri}
 \graphicspath{{images/}}
 
@@ -40,6 +42,8 @@
 \titleformat{\subsection}
 {\normalfont\Large\bfseries}{}{0em}{\colorbox[RGB]{219,229,241}{\parbox{\dimexpr\textwidth-2\fboxsep\relax}{\textcolor{black}{\thesubsection\quad\MakeUppercase{#1}}}}}
 
+\DeclarePairedDelimiter\ceil{\lceil}{\rceil}
+\DeclarePairedDelimiter\floor{\lfloor}{\rfloor}
 \newcommand{\code}[1]{\texttt{#1}}
 
 \begin{document}
@@ -95,6 +99,10 @@ Appendices & 50 & 50 \\
 \input{problem_description.tex}
 
 \input{approach.tex}
+
+\input{results.tex}
+
+\input{conclusions.tex}
 
 \bibliographystyle{ieeetr}
 \bibliography{references}

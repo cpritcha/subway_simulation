@@ -28,6 +28,117 @@ Similar to directed graphs and used in discrete event modeling of concurrent sys
 	\label{fig:directedgraph}
 \end{figure}
 
+\subsection{Track Section Model}
+
+The track section model is needed to control access to track sections. A train
+is permitted to enter a section if their is remaining capacity in the section.
+When a train leaves a section the section's remaining capacity is increased by
+one. The track section model can be represented by the model below.
+
+\newcommand{\InEnterReq}[0]{(\text{``Enter Request''}, ())}
+\newcommand{\InExitReq}[0]{(\text{``Exit Request''}, ())}
+
+\newcommand{\OutEnterRes}[1]{(\text{``Enter Response''}, #1)}
+
+\begin{align*}
+    A &= \text{Number of trains allowed on section} \\
+    X &= \{\InEnterReq, \\
+        & \InExitReq
+    \} \\
+    Y &= \{\OutEnterRes{\{\text{May enter}, \text{May not enter}\}}\} \\
+    S &= \{ a | a \in \mathbb{N}_0, a \leq A \} \\
+    ta(S) &= \infty \\
+    \delta_{ext}(a, e, \InEnterReq) &= 
+        \begin{cases}
+            a - 1 & \text{if\;} a > 0 \\
+            a & \text{otherwise} \\
+        \end{cases} \\
+    \delta_{ext}(a, e, \InExitReq) &= 
+        \begin{cases}
+            a + 1 & \text{if\;} a < A \\
+            a & \text{otherwise} \\
+        \end{cases} \\
+    \lambda(a) &= 
+        \begin{cases}
+            \text{May enter} & \text{if\;} a > 0 \\
+            \text{May not enter} & \text{otherwise} \\
+        \end{cases}
+\end{align*}
+
+\subsection{Train Model}
+
+Trains travel station to station to unload and load passengers. Sometimes they
+break down. They also recieve instructions or signals to break down or move
+forward. This behaviour is represented by the model below. Any missing
+transitions are assumed to return the input state. 
+
+The model makes some simplifying assumptions. It assumes that each track section
+includes stations and the track up to the next station. This assumption could be
+relaxed by having the train keep track of whether or not the train is at a
+station. A 50\% disembark rate is also assumed for unloading at each station. A
+more detailed model would include each passengers destination station so that
+forced breakdowns event would force passengers to exit and those that did not
+reach their desired destination would board the next train (this model assumes
+disembarkers never reboard). It also assumes that breakdown repair times and in
+need of repair times is constant.
+
+\newcommand{\InBreakDown}[0]{(\text{``Breakdown''}, ())}
+\newcommand{\InCapReq}[0]{(\text{``Capacity Request''}, ())}
+\newcommand{\InMoveRes}[1]{(\text{``Move Response''}, #1)}
+\newcommand{\InLoadPassengers}[1]{(\text{``Load Passengers''}, #1)}
+
+\newcommand{\OutRemainingCapacity}[1]{(\text{``Remaining Capacity''}, #1)}
+\newcommand{\OutUnloadPassengers}[1]{(\text{``Unload Passengers''}, #1)}
+\newcommand{\OutMoveReq}[0]{(\text{``Move Request''}, ())}
+\newcommand{\phase}[0]{\text{phase}}
+
+\newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
+
+\begin{align*}
+    N &= \# \text{\;of train stations} \\
+    C &= \text{Passenger capacity of train} \\
+    X &= \{
+      \InBreakDown, \\
+      &  \InCapReq, \\
+      &  \InLoadPassengers{\{ p | p \in \mathbb{N}_0, p \leq C \}} \\
+      &  \InMoveRes{\{ \text{Accepted}, \text{Rejected} \}}
+    \} \\
+    Y &= \{
+      \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
+      &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
+      &  \OutMoveReq
+    \} \\
+    S_{action} &= \{
+      \text{moving}, \text{needs repairs}, \text{in repair}, \\
+      &  \text{loading}, \text{unloading}, \text{waiting} 
+    \} \\
+    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i \leq N
+    \} \\
+    S_{passengers} &= \{ p | p \in \mathbb{N}_0, p \leq C \} \\
+    S &= S_{action} \times S_{position} \times S_{passengers} \times \sigma \\
+    ta(a, i, p, \sigma) &= \sigma \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InBreakDown) &= 
+        (\text{needs repair}, i, p, \sigma_n) \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Accepted}})
+        &= (\text{unloading}, \Mod{i+1}{N}, p, \infty) \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Rejected}})
+        &= (\text{moving}, i, p, \sigma - e) \\
+    \delta_{ext}((\text{unloading}, i, p, \sigma), e, \InCapReq) &=
+        (\text{waiting}, i, \ceil*{p/2}, \infty) \\
+    \delta_{ext}((\text{waiting}, i, p, \sigma), e, \InLoadPassengers{n}) &=
+        (\text{loading}, i, p + n, \sigma_l) \\
+    \delta_{int}(\text{loading}, i, p, \sigma) &= (\text{moving}, i, p,
+        \text{time to next station}) \\
+    \delta_{int}(\text{needs repair}, i, p, \sigma) &= 
+        (\text{in repair}, i, p, \sigma_i) \\
+    \delta_{int}(\text{in repair}, i, p, \sigma) &= 
+        (\text{moving}, i, p, \text{time to next station}) \\  
+    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq \\
+    \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{\floor*{p/2}} \\
+    \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
+\end{align*}
+
+
 \subsection{Scheduler Model}
 A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set.
 \noindent $DEVS_{\textrm{Scheduler}}=\left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>$ \\
