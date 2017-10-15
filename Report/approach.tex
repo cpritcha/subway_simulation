@@ -1,4 +1,7 @@
 \section{Approach}
+Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Whereas simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evalueate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
+
+The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the motion of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
 
 \subsection{Rail System Models}
 A natural data structure choice for representing a rail system is a directed graph.  In the most basic implementation, each station would be a vertex and the edges would each represent a directional track from one station to the next. Figure~\ref{fig:directedgraph} shows a directed graph model of the Sheppard Line in the Toronto subway system.
@@ -17,3 +20,8 @@ Similar to directed graphs and used in discrete event modeling of concurrent sys
 	\caption{Petri Net Model of Sheppard Subway Line}
 	\label{fig:directedgraph}
 \end{figure}
+
+\subsection{Scheduler Model}
+
+\subsection{Planned Experiments}
+
