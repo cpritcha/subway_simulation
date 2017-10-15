@@ -1,8 +1,15 @@
 \section{Approach}
 Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Whereas simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evalueate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
 
-The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the motion of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
-
+The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. A hierarchy and some simple relationships between the components are shown in Fig.~\ref{fig:hierarchy}.  Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the motion of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
+%
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=6.5in]{hierarchy.png}
+	\caption{Component Hierarchy}
+	\label{fig:hierarchy}
+\end{figure}
+%
 \subsection{Rail System Models}
 A natural data structure choice for representing a rail system is a directed graph.  In the most basic implementation, each station would be a vertex and the edges would each represent a directional track from one station to the next. Figure~\ref{fig:directedgraph} shows a directed graph model of the Sheppard Line in the Toronto subway system.
 \begin{figure}[htb]
@@ -22,6 +29,11 @@ Similar to directed graphs and used in discrete event modeling of concurrent sys
 \end{figure}
 
 \subsection{Scheduler Model}
+A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set.
+\noindent $DEVS_{\textrm{Scheduler}}=\left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>$ \\
+$\hspace*{4ex} X=\lbrace t|t\in Trains\rbrace$ \\
+$\hspace*{4ex} Y=\lbrace T|T\subseteq Trains\rbrace \cup\emptyset$ \\
+$\hspace*{4ex} S=\lbrace Waiting, Commanding\rbrace\times \mathbb{N}_0^+$ \\
 
 \subsection{Planned Experiments}
 The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge.
