@@ -1,0 +1,89 @@
+\section{Approach}
+
+\subsection{Track Section}
+
+The track section model has one input port for track enter requests and one
+output port for whether or not they may enter. 
+
+\begin{align*}
+    X &= (\text{``Enter Request''}, ()) \\
+    Y &= (\text{``Enter Response''}, 
+      \{\text{May enter}, \text{May not enter}\})
+    \\
+    S &= \{\text{Track Available}, \text{Track Unavailable}\} \\
+    ta(S) &= \infty \\
+    \delta_{ext}(\text{Track Available}, e, ()) &= 
+      \text{May enter}  \\
+    \delta_{ext}(\text{Track Unavailable}, e, ()) &= 
+      \text{May not enter}  \\
+    \lambda(\text{Track Available}) &= \text{May enter} \\
+    \lambda(\text{Track Unavailable}) &= \text{May not enter}
+\end{align*}
+
+\subsection{Train}
+
+The train model takes in move responses, passenger capacity requests, break
+downs and loading passengers. The model returns remaining capacity, passengers
+unloading and move requests.
+
+% Simplifying assumptions:
+
+% - the is only one section between stations
+% - breakdown repair times and in need of repair times constant
+% - time between stations is constant (except for when delays occur)  
+
+\newcommand{\InBreakDown}[0]{(\text{``Breakdown''}, ())}
+\newcommand{\InCapReq}[0]{(\text{``Capacity Request''}, ())}
+\newcommand{\InMoveRes}[1]{(\text{``Move Response''}, #1)}
+\newcommand{\InLoadPassengers}[1]{(\text{``Load Passengers''}, #1)}
+
+\newcommand{\OutRemainingCapacity}[1]{(\text{``Remaining Capacity''}, #1)}
+\newcommand{\OutUnloadPassengers}[1]{(\text{``Unload Passengers''}, #1)}
+\newcommand{\OutMoveReq}[0]{(\text{``Move Request''}, ())}
+\newcommand{\phase}[0]{\text{phase}}
+
+\newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
+
+\begin{align*}
+    N &= \# \text{\;of train stations} \\
+    C &= \text{Passenger capacity of train} \\
+    X &= \{
+      \InBreakDown, \\
+      &  \InCapReq, \\
+      &  \InLoadPassengers{\{ p | p \in \mathbb{N}_0, p \leq C \}} \\
+      &  \InMoveRes{\{ \text{Accepted}, \text{Rejected} \}}
+    \} \\
+    Y &= \{
+      \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
+      &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
+      &  \OutMoveReq
+    \} \\
+    S_{action} &= \{
+      \text{moving}, \text{needs repairs}, \text{in repair}, \\
+      &  \text{loading}, \text{unloading}, \text{waiting} 
+    \} \\
+    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i \leq N
+    \} \\
+    S_{passengers} &= \{ p | p \in \mathbb{N}_0, p \leq C \} \\
+    S &= S_{action} \times S_{position} \times S_{passengers} \times \sigma \\
+    ta(a, i, p, \sigma) &= \sigma \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InBreakDown) &= (\text{needs
+        repair}, i, p, \sigma_n) \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Accepted}}) &=
+        (\text{unloading}, \Mod{i+1}{N}, p, \infty) \\
+    \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Rejected}}) &=
+        (\text{moving}, i, p, \sigma - e) \\
+    \delta_{ext}((\text{unloading}, i, p, \sigma), e, \InCapReq) &=
+        (\text{waiting}, i, p/2, \infty) \\
+    \delta_{ext}((\text{waiting}, i, p, \sigma), e, \InLoadPassengers{n}) &=
+        (\text{loading}, i, p + n, \sigma_l) \\
+    \delta_{int}(\text{loading}, i, p, \sigma) &= (\text{moving}, i, p,
+        \text{time to next station}) \\
+    \delta_{int}(\text{needs repair}, i, p, \sigma) &= (\text{in repair}, i, p,
+        \sigma_i) \\
+    \delta_{int}(\text{in repair}, i, p, \sigma) &= (\text{moving}, i, p,
+        \text{time to next station}) \\  
+    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq \\
+    \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{p/2} \\
+    \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
+\end{align*}
