@@ -104,11 +104,11 @@ period adjusted.
 
 In subway systems, collision detection with a directed graph model of the subway
 system can ensure feasible, crash free subway dynamics by requiring trains to be
-far enough apart that if one train stops the trains behind it do not rear end
+far enough apart that if one train stops the trains behind it does not rear end
 it. Calculation of minimum safe distance between trains requires information
 about track layout and train velocity and acceleration. A model of a train
 traveling between stations has been done by Xu~\cite{Xu2014}. In their model of
-a train between stations there is an acceleration period, a cruising period and
+a train traveling between stations there is an acceleration period, a cruising period and
 a deceleration period. At each time step trains proceed to the next station in a
 safe manner taking into account time and energy efficiency. The safety criterion
 requires that the minimum stopping distance of the rear train is less than the
@@ -116,7 +116,7 @@ distance between the leader and follower train train plus the minimum stopping
 distance of the lead train and a safety factor. 
 
 Petri nets were chosen over collision detection for simulating subway train
-movement because Petri nets are simpler, more efficient require less data to
+movement because Petri nets are simpler, more efficient, require less data to
 calibrate and capture the dynamics of train break downs and delays. 
 
 Petri nets are simpler than collision detection because Petri nets do not have
