@@ -100,6 +100,7 @@ need of repair times is constant.
 \newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
 
 \begin{align*}
+    T &= \text{\# of trains} \\
     N &= \# \text{\;of train stations} \\
     C &= \text{Passenger capacity of train} \\
     X &= \{
@@ -111,7 +112,8 @@ need of repair times is constant.
     Y &= \{
       \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
       &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
-      &  \OutMoveReq{\{ i | i \in \mathbb{N}_0, i < N \}}
+      &  \OutMoveReq{\\ 
+        & \{ (i, t) | i \in \mathbb{N}_0, i < N, t \in \mathbb{N}_0, t < T \}}
     \} \\
     S_{action} &= \{
       \text{moving}, \text{needs repairs}, \text{in repair}, \\
@@ -138,7 +140,8 @@ need of repair times is constant.
         (\text{in repair}, i, p, \sigma_i) \\
     \delta_{int}(\text{in repair}, i, p, \sigma) &= 
         (\text{moving}, i, p, \text{time to next station}) \\  
-    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq{i} \\
+    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq{(i, t)} \\ 
+        & \text{\;where\;} t \text{\;is the constant train ID} \\
     \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{\floor*{p/2}} \\
     \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
 \end{align*}
