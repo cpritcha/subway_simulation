@@ -1,5 +1,5 @@
 \section{Approach}
-Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Whereas simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evalueate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
+Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Where simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evalueate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
 
 The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. A hierarchy and some simple relationships between the components are shown in Fig.~\ref{fig:hierarchy}.  Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the motion of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
 %
@@ -11,6 +11,24 @@ The approach considered here consists of five atomic components coupled together
 \end{figure}
 %
 \subsection{Station Model}
+The station serves as the creation and destruction point for passengers.  The station is also the only location where trains may load or unload passengers. The station is responsible for maintaining a pool of waiting passengers.  If a train does not have enough capacity to board all waiting passengers, then those passengers persist at the station and wait for the next train.  The inputs to the station are a pool of new passengers, an available passenger capacity by the current train, and a set of passengers to unload from the arriving train.  The outputs are a request to the current train for its available capacity after unloading passengers and a set of passengers to load onto the train. For its states, the station may be simply waiting, adding new passengers to the pool, receiving passengers from the train or providing passengers to the train.  It must also have a state variable that holds the current passenger collection.
+\begin{align*}
+DEVS_{\textrm{Station}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
+P &= Passenger\ Collection, |P|\in\mathbb{N}_0^+ \\
+C &= \text{Passenger capacity of train} \\
+X &= \lbrace(\text{``Unload Passengers''},\lbrace u|u\in\mathbb{N}_0\rbrace), \\ & (\text{``Remaining Capacity''},\lbrace c|c\in\mathbb{N}_0\rbrace), \\ &\lbrace P\rbrace\rbrace \\
+Y &= \lbrace(\text{``Capacity Request''},()), \\ & (\text{``Load Passengers''},\lbrace\cup \emptyset p|p\in\mathbb{N}_0,p\leq C\rbrace)\rbrace \\
+S_{action} &= \lbrace\text{waiting, adding passengers}, \\ & \text{receiving passengers, providing passengers}\rbrace \\
+S_{passengers} &= \lbrace P, |P|\in\mathbb{N}_0^+\rbrace \\
+S &= S_{action}\times S_{passengers} \\
+\delta_{ext}(\text{waiting},e,(\text{''Unload Passsengers''},\lbrace u|u\in\mathbb{N}_0\rbrace)) &= (\text{receiving passengers},\lbrace u\rbrace) \\
+\delta_{ext}(\text{waiting},e,(\text{``Remaining Capacity''},c)) &= (\text{providing passengers},p) \\
+\delta_{int}(\text{waiting}) &= \text{waiting} \\
+\delta_{int}(\text{waiting}) &= \text{adding passengers} \\
+\delta_{int}(\text{adding passengers},\sigma) &= \text{waiting} \\
+\lambda(\text{providing passengers}) &= (\text{``Load Passengers''},\lbrace p|p\in\mathbb{N}_0,p\leq C\rbrace) \\
+ta &= \sigma \\
+\end{align*}
 %
 \subsection{Track Section Model}
 
@@ -56,10 +74,10 @@ DEVS_{\textrm{Track}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
 Trains travel station to station to unload and load passengers. Sometimes they
 break down. They also follow a movement protocol and a loading and unloading
 protocol. In the loading and unloading protocol, a train arrives at a station,
-unloads some of its passengers, waits for a capacity request, reponds with a
+unloads some of its passengers, waits for a capacity request, responds with a
 remaining capacity and awaits for the station to load the train. In the movement
 protocol, the train asks the scheduler if it can be move forward and scheduler
-replies with an affirmative or negative. This behaviour is represented by the
+replies with an affirmative or negative. This behavior is represented by the
 DEVS with ports model below. Any missing transitions are assumed to return the
 input state. 
 
@@ -71,7 +89,7 @@ more detailed model would include each passengers destination station so that
 forced breakdowns event would force passengers to exit and those that did not
 reach their desired destination would board the next train (this model assumes
 disembarkers never reboard). It also assumes that breakdown repair times and in
-need of repair times is constant.
+need of repair times are constant.
 
 \newcommand{\InBreakDown}[0]{(\text{``Breakdown''}, ())}
 \newcommand{\InCapReq}[0]{(\text{``Capacity Request''}, ())}
@@ -135,7 +153,7 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
 
 
 \subsection{Scheduler Model}
-A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set. The model remains in a perpetual state of waiting until it receives a move request from one of the trains.  Then is processes this request accordingly, responds, and then reverts back to a waiting state. The state consists of the two phases, waiting or moving trains, and state variables that store the input ID of the requesting train and its position.
+A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set. The model remains in a perpetual state of waiting until it receives a move request from one of the trains.  It processes this request accordingly, responds, and then reverts back to a waiting state. The state consists of the two phases, waiting or moving trains, and state variables that store the input ID of the requesting train and its position.
 \begin{align*} DEVS_{\textrm{Scheduler}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
 T &= \# \text{ of trains} \\
 N &= \# \text{ of train stations} \\
@@ -154,7 +172,9 @@ ta(\text{waiting}) &= \infty \\
 \end{align*}
 
 \subsection{Planned Experiments}
-The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge.
+The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
+
+These experiments will also involve varying the number of trains in service, with the goal of finding the optimum number of trains particular to the subway circuit modeled.  An increase in the number of trains may nominally be able to carry a larger number of passengers, assuming the number of trains does not exceed the number of stations.  However, if a disruption occurs and a train is disabled, this can quickly lead to deadlock as there is no extra bandwidth in the rail system to allow the trains to switch and get around the disabled train because all stations are occupied at any given time.  Conversely, if there are too few trains operating it runs the risk of not having enough total capacity to carry the influx of passengers, even though it may be easier to overcome service disruptions.
 
 \subsection{Expected Outcomes}
 

@@ -23,7 +23,7 @@ England.  The departure was the first train of the day with an expected travel
 time of approximately four hours. Along the journey, and with numerous stops
 remaining, the rail car the author was riding in suffered a breakdown.  After
 exchanging passengers at a stop, the rail car doors would not close.  The rail
-staff attempted for over twenty minutes to get the cars to close.  This resulted
+staff attempted for over twenty minutes to get the doors to close.  This resulted
 in an immediate delay for all other stops and also delayed trains that would be
 arriving later in the day.  With trains arriving and departing at major stops
 every twenty to thirty minutes, this single breakdown had significant
@@ -115,7 +115,7 @@ train at every time step. With a Petri net, minimum safe distance calculations
 can be avoided by discretizing the track into sections with length greater than
 the trains minimum stopping distance at maximum speed (or with a number of
 sections if a more than one track lookahead rule is used) which ensures that
-collisions are always avoidable. Petri nets are more efficient because they do not require any physics calculations during simulation and can evaluated as discrete events which results in a fewer number of calculations being required so long as track sections are large relative to the size of the time steps in a collision model. Petri nets are capable of modeling the break down and delay dynamics of interest because a train delay or breakdown will back up the trains behind it so long as the section of track the delayed or broken down train is on does not have a
+collisions are always avoidable. Petri nets are more efficient because they do not require any physics calculations during simulation and can evaluated as discrete events which results in a fewer number of calculations being required so long as track sections are large relative to the size of the time steps in a collision model. Petri nets are capable of modeling the breakdown and delay dynamics of interest because a train delay or breakdown will back up the trains behind it so long as the section of track the delayed or broken down train is on does not have a
 passing track. More data is needed for a collision detection model because it has higher physics fidelity than a Petri net. With the Petri net you only need the time it takes to pass through a section of track and the minimum stopping distance at
 maximum speed. The collision model requires knowledge of train accelaration and
 deceleration and maximum speed at different locations on the track.
