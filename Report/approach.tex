@@ -69,9 +69,14 @@ below.
 \subsection{Train Model}
 
 Trains travel station to station to unload and load passengers. Sometimes they
-break down. They also recieve instructions or signals to break down or move
-forward. This behaviour is represented by the DEVS with ports model below. Any
-missing transitions are assumed to return the input state. 
+break down. They also follow a movement protocol and a loading and unloading
+protocol. In the loading and unloading protocol, a train arrives at a station,
+unloads some of its passengers, waits for a capacity request, reponds with a
+remaining capacity and awaits for the station to load the train. In the movement
+protocol, the train asks the scheduler if it can be move forward and scheduler
+replies with an affirmative or negative. This behaviour is represented by the
+DEVS with ports model below. Any missing transitions are assumed to return the
+input state. 
 
 The model makes some simplifying assumptions. It assumes that each track section
 includes stations and the track up to the next station. This assumption could be
