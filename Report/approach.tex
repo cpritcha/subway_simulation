@@ -20,7 +20,6 @@ A natural data structure choice for representing a rail system is a directed gra
 \end{figure}
 What the directed graph representation lacks for this application is any notion of an integrated train model. A separate train model could be made to use the directed graph simply to know where to go next, but it would require much extra logic to determine \textit{if} it could go do the next station.  Where this decision is made is also not obvious when using the directed graph.
 
-Similar to directed graphs and used in discrete event modeling of concurrent systems is a structure called a Petri net.~\cite{Petri62}  Synonymous to the vertices in a directed graph, Petri nets contain \textit{places}.  Whereas directed graphs use edges to connect those vertices, Petri nets use \textit{arcs}. However, Petri nets do not simply connect one \textit{place} to another.  \textit{Arcs} actually connect \textit{places} to \textit{transitions}. Each \textit{transition} has an input and an output arc joining it to \textit{places}.  Each \textit{place} optionally can contain a finite number of \textit{tokens}.  \textit{Tokens} for this application represent the trains.  More formally, they are objects that represent processes in a given state, where the states are represented by the \textit{places}.~\cite{Kristoffersen2003}  Figure~\ref{fig:petrinet} shows a Petri net model of the Sheppard subway line. The rectangles at the midpoint of the arcs represent the transitions and the black dots inside the represent the tokens.
 \begin{figure}[htb]
 	\centering
 	\includegraphics[width=6.5in]{petrinet.png}
@@ -95,12 +94,13 @@ need of repair times is constant.
 
 \newcommand{\OutRemainingCapacity}[1]{(\text{``Remaining Capacity''}, #1)}
 \newcommand{\OutUnloadPassengers}[1]{(\text{``Unload Passengers''}, #1)}
-\newcommand{\OutMoveReq}[0]{(\text{``Move Request''}, ())}
+\newcommand{\OutMoveReq}[1]{(\text{``Move Request''}, #1)}
 \newcommand{\phase}[0]{\text{phase}}
 
 \newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
 
 \begin{align*}
+    T &= \text{\# of trains} \\
     N &= \# \text{\;of train stations} \\
     C &= \text{Passenger capacity of train} \\
     X &= \{
@@ -112,13 +112,14 @@ need of repair times is constant.
     Y &= \{
       \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
       &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
-      &  \OutMoveReq
+      &  \OutMoveReq{\\ 
+        & \{ (i, t) | i \in \mathbb{N}_0, i < N, t \in \mathbb{N}_0, t < T \}}
     \} \\
     S_{action} &= \{
       \text{moving}, \text{needs repairs}, \text{in repair}, \\
       &  \text{loading}, \text{unloading}, \text{waiting} 
     \} \\
-    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i \leq N
+    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i < N
     \} \\
     S_{passengers} &= \{ p | p \in \mathbb{N}_0, p \leq C \} \\
     S &= S_{action} \times S_{position} \times S_{passengers} \times \sigma \\
@@ -139,7 +140,8 @@ need of repair times is constant.
         (\text{in repair}, i, p, \sigma_i) \\
     \delta_{int}(\text{in repair}, i, p, \sigma) &= 
         (\text{moving}, i, p, \text{time to next station}) \\  
-    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq \\
+    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq{(i, t)} \\ 
+        & \text{\;where\;} t \text{\;is the constant train ID} \\
     \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{\floor*{p/2}} \\
     \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
 \end{align*}
