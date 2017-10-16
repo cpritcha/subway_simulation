@@ -33,7 +33,8 @@ Similar to directed graphs and used in discrete event modeling of concurrent sys
 The track section model is needed to control access to track sections. A train
 is permitted to enter a section if their is remaining capacity in the section.
 When a train leaves a section the section's remaining capacity is increased by
-one. The track section model can be represented by the model below.
+one. The track section model can be represented by the DEVS with ports model 
+below.
 
 \newcommand{\InEnterReq}[0]{(\text{``Enter Request''}, ())}
 \newcommand{\InExitReq}[0]{(\text{``Exit Request''}, ())}
@@ -69,8 +70,8 @@ one. The track section model can be represented by the model below.
 
 Trains travel station to station to unload and load passengers. Sometimes they
 break down. They also recieve instructions or signals to break down or move
-forward. This behaviour is represented by the model below. Any missing
-transitions are assumed to return the input state. 
+forward. This behaviour is represented by the DEVS with ports model below. Any
+missing transitions are assumed to return the input state. 
 
 The model makes some simplifying assumptions. It assumes that each track section
 includes stations and the track up to the next station. This assumption could be
