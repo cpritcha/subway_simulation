@@ -111,13 +111,13 @@ need of repair times is constant.
     Y &= \{
       \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
       &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
-      &  \OutMoveReq{\{ i | i \in \mathbb{N}_0, i \leq N \}}
+      &  \OutMoveReq{\{ i | i \in \mathbb{N}_0, i < N \}}
     \} \\
     S_{action} &= \{
       \text{moving}, \text{needs repairs}, \text{in repair}, \\
       &  \text{loading}, \text{unloading}, \text{waiting} 
     \} \\
-    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i \leq N
+    S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i < N
     \} \\
     S_{passengers} &= \{ p | p \in \mathbb{N}_0, p \leq C \} \\
     S &= S_{action} \times S_{position} \times S_{passengers} \times \sigma \\
