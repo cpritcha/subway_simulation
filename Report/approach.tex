@@ -94,7 +94,7 @@ need of repair times is constant.
 
 \newcommand{\OutRemainingCapacity}[1]{(\text{``Remaining Capacity''}, #1)}
 \newcommand{\OutUnloadPassengers}[1]{(\text{``Unload Passengers''}, #1)}
-\newcommand{\OutMoveReq}[0]{(\text{``Move Request''}, ())}
+\newcommand{\OutMoveReq}[1]{(\text{``Move Request''}, #1)}
 \newcommand{\phase}[0]{\text{phase}}
 
 \newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
@@ -111,7 +111,7 @@ need of repair times is constant.
     Y &= \{
       \OutRemainingCapacity{\{ c | c \in \mathbb{N}_0 \}}, \\
       &  \OutUnloadPassengers{\{ u | u \in \mathbb{N}_0 \}}, \\
-      &  \OutMoveReq
+      &  \OutMoveReq{\{ i | i \in \mathbb{N}_0, i \leq N \}}
     \} \\
     S_{action} &= \{
       \text{moving}, \text{needs repairs}, \text{in repair}, \\
@@ -138,7 +138,7 @@ need of repair times is constant.
         (\text{in repair}, i, p, \sigma_i) \\
     \delta_{int}(\text{in repair}, i, p, \sigma) &= 
         (\text{moving}, i, p, \text{time to next station}) \\  
-    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq \\
+    \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq{i} \\
     \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{\floor*{p/2}} \\
     \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
 \end{align*}
