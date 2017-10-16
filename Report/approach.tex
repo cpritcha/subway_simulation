@@ -147,10 +147,11 @@ need of repair times is constant.
 
 \subsection{Scheduler Model}
 A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set.
-\noindent $DEVS_{\textrm{Scheduler}}=\left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>$ \\
-$\hspace*{4ex} X=\lbrace t|t\in Trains\rbrace$ \\
-$\hspace*{4ex} Y=\lbrace T|T\subseteq Trains\rbrace \cup\emptyset$ \\
-$\hspace*{4ex} S=\lbrace Waiting, Commanding\rbrace\times \mathbb{N}_0^+$ \\
+\begin{align*} DEVS_{\textrm{Scheduler}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
+X &= \lbrace (Move\ Request,Position)\rbrace \\
+Y &= \lbrace(Move\ Response,Position),Position\subseteq Stations\rbrace \cup\emptyset \\
+S &= \lbrace Waiting, Moving Trains\rbrace\times \mathbb{N}_0^+ \\
+\end{align*}
 
 \subsection{Planned Experiments}
 The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge.
