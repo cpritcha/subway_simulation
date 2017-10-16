@@ -10,23 +10,8 @@ The approach considered here consists of five atomic components coupled together
 	\label{fig:hierarchy}
 \end{figure}
 %
-\subsection{Rail System Models}
-A natural data structure choice for representing a rail system is a directed graph.  In the most basic implementation, each station would be a vertex and the edges would each represent a directional track from one station to the next. Figure~\ref{fig:directedgraph} shows a directed graph model of the Sheppard Line in the Toronto subway system.
-\begin{figure}[htb]
-	\centering
-	\includegraphics[width=6.5in]{directedgraph.png}
-	\caption{Directed Graph Model of Sheppard Subway Line}
-	\label{fig:directedgraph}
-\end{figure}
-What the directed graph representation lacks for this application is any notion of an integrated train model. A separate train model could be made to use the directed graph simply to know where to go next, but it would require much extra logic to determine \textit{if} it could go do the next station.  Where this decision is made is also not obvious when using the directed graph.
-
-\begin{figure}[htb]
-	\centering
-	\includegraphics[width=6.5in]{petrinet.png}
-	\caption{Petri Net Model of Sheppard Subway Line}
-	\label{fig:directedgraph}
-\end{figure}
-
+\subsection{Station Model}
+%
 \subsection{Track Section Model}
 
 The track section model is needed to control access to track sections. A train
@@ -41,6 +26,7 @@ below.
 \newcommand{\OutEnterRes}[1]{(\text{``Enter Response''}, #1)}
 
 \begin{align*}
+DEVS_{\textrm{Track}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
     A &= \text{Number of trains allowed on section} \\
     X &= \{\InEnterReq, \\
         & \InExitReq
@@ -100,6 +86,7 @@ need of repair times is constant.
 \newcommand{\Mod}[2]{\mathrm{mod} (#1, #2)}
 
 \begin{align*}
+DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
     T &= \text{\# of trains} \\
     N &= \# \text{\;of train stations} \\
     C &= \text{Passenger capacity of train} \\
@@ -148,11 +135,22 @@ need of repair times is constant.
 
 
 \subsection{Scheduler Model}
-A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set.
+A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set. The model remains in a perpetual state of waiting until it receives a move request from one of the trains.  Then is processes this request accordingly, responds, and then reverts back to a waiting state. The state consists of the two phases, waiting or moving trains, and state variables that store the input ID of the requesting train and its position.
 \begin{align*} DEVS_{\textrm{Scheduler}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
-X &= \lbrace (Move\ Request,Position)\rbrace \\
-Y &= \lbrace(Move\ Response,Position),Position\subseteq Stations\rbrace \cup\emptyset \\
-S &= \lbrace Waiting, Moving Trains\rbrace\times \mathbb{N}_0^+ \\
+T &= \# \text{ of trains} \\
+N &= \# \text{ of train stations} \\
+X &= \lbrace\OutMoveReq{(i,t)|i\in\mathbb{N}_0,i<N, t\in\mathbb{N}_0,t<T}\rbrace \\
+Y &= \lbrace\InMoveRes{(iset,tset)|iset\subseteq N, tset\subseteq T}\rbrace \cup\emptyset \\
+S_{action} &= \lbrace \text{waiting, moving trains}\rbrace \\
+S_{position} &= {i|i\in\mathbb{N}_0, i<N} \\
+S_{train} &= {t|t\in\mathbb{N}_0, t<T} \\
+S &= S_{action}\times S_{position}\times S_{train} \\
+\delta_{ext}(\text{waiting},e,(\text{``Move Request''},i,t)) &= (\text{moving trains},i,t,\sigma) \\
+\delta_{int}(\text{moving trains},i,t,\sigma) &= \text{waiting} \\
+\delta_{int}(\text{waiting}) &= \text{waiting} \\
+\lambda(\text{moving trains},i,t,\sigma) &= (\text{``Move Response''},\lbrace Accepted, Rejected\rbrace\times iset\times tset\cup \emptyset)\\
+ta(\text{moving trains}) &= \sigma \\ 
+ta(\text{waiting}) &= \infty \\
 \end{align*}
 
 \subsection{Planned Experiments}

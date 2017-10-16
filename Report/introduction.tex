@@ -2,28 +2,15 @@
 
 Subways are a key form of transportation for people living in cities. This
 report investigates the role of subway passing tracks in ensuring that subway
-service is not adversely impacted by breakdowns.
-
-Subway delay data from the Toronto Transit Commission (TTC) is used as a guide
-to determine the frequency and severity of delays for subways, how far trains
-are from one another when delayed and the delay cause.
-
-Different simulation techniques for subway system scheduling and breakdown are
+service is not adversely impacted by breakdowns. Subway delay data from the Toronto Transit Commission (TTC) is used as a guide to determine the frequency and severity of delays for subways, how far trains are from one another when delayed and the delay cause. Different simulation techniques for subway system scheduling and breakdown are
 explored in the background section. Petri nets and collision detection methods
 are compared for their ability to simulate subway breakdowns matching the
-important properties found in TTC data and for ease of use. 
-
-A Petri net method explored is explored for simulating train movement in the
-modeling section. The model is placed within the parallel DEVS formalism to
-clarify how the trains, stations and tracks interact with one another over time.
-Implementation of the simulation model in \code{DEVS-Suite} is also discussed.
+important properties found in TTC data and for ease of use. A Petri net method explored is explored for simulating train movement in the modeling section. The model is placed within the parallel DEVS formalism to clarify how the trains, stations and tracks interact with one another over time. Implementation of the simulation model in \code{DEVS-Suite} is also discussed.
 
 Experiments are created to match scenarios with moderate delays (excluding
 flooding or other subway wide delays) found in the TTC data. Track
 configurations with different prevalences and placements of passing tracks are
 tested to see what impact configurations has on subway delays. All track
-configurations tested use a looping track layout without intersections.
-
-Model results for track different track configurations are used to determine how
+configurations tested use a looping track layout without intersections. Model results for different track configurations are used to determine how
 important the prevalence and placement of passing tracks is in preventing
 delays. 
