@@ -77,9 +77,10 @@ protocol. In the loading and unloading protocol, a train arrives at a station,
 unloads some of its passengers, waits for a capacity request, responds with a
 remaining capacity and awaits for the station to load the train. In the movement
 protocol, the train asks the scheduler if it can be move forward and scheduler
-replies with an affirmative or negative. This behavior is represented by the
-DEVS with ports model below. Any missing transitions are assumed to return the
-input state. 
+replies with an accepted or rejected. Trains rejected from proceeding to the
+next section still proceed as far as they can within their section. This
+behavior is represented by the DEVS with ports model below. Any missing
+transitions are assumed to return the input state. 
 
 The model makes some simplifying assumptions. It assumes that each track section
 includes stations and the track up to the next station. This assumption could be
@@ -108,6 +109,8 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
     T &= \text{\# of trains} \\
     N &= \# \text{\;of train stations} \\
     C &= \text{Passenger capacity of train} \\
+    m &= \text{Travel time from end of track} \\
+        & \text{section to next section} \\
     X &= \{
       \InBreakDown, \\
       &  \InCapReq, \\
@@ -122,33 +125,41 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
     \} \\
     S_{action} &= \{
       \text{moving}, \text{needs repairs}, \text{in repair}, \\
-      &  \text{loading}, \text{unloading}, \text{waiting} 
+      &  \text{loading}, \text{unloading}, \text{waiting for load}, \\
+      &  \text{waiting for cap req} 
     \} \\
     S_{\text{position}} &= \{ i | i \in \mathbb{N}_0, i < N
     \} \\
     S_{passengers} &= \{ p | p \in \mathbb{N}_0, p \leq C \} \\
     S &= S_{action} \times S_{position} \times S_{passengers} \times \sigma \\
     ta(a, i, p, \sigma) &= \sigma \\
+    %
     \delta_{ext}((\text{moving}, i, p, \sigma), e, \InBreakDown) &= 
-        (\text{needs repair}, i, p, \sigma_n) \\
+        (\text{needs repair}, i, p, \\
+        & \text{time till repairs start}) \\
     \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Accepted}})
-        &= (\text{unloading}, \Mod{i+1}{N}, p, \infty) \\
+        &= (\text{unloading}, \Mod{i+1}{N}, \ceil*{p/2}, \\
+        & \text{loading time}) \\
     \delta_{ext}((\text{moving}, i, p, \sigma), e, \InMoveRes{\text{Rejected}})
-        &= (\text{moving}, i, p, \sigma - e) \\
-    \delta_{ext}((\text{unloading}, i, p, \sigma), e, \InCapReq) &=
-        (\text{waiting}, i, \ceil*{p/2}, \infty) \\
-    \delta_{ext}((\text{waiting}, i, p, \sigma), e, \InLoadPassengers{n}) &=
-        (\text{loading}, i, p + n, \sigma_l) \\
+        &= (\text{moving}, i, p, \max(m, \sigma - e)) \\
+    \delta_{ext}((\text{waiting for cap req}, i, p, \sigma), e, \InCapReq) &=
+        (\text{waiting for load}, i, p, \infty) \\
+    \delta_{ext}((\text{waiting for load}, i, p, \sigma), e, \InLoadPassengers{p_{load}}) &=
+        (\text{loading}, i, p + p_{load}, \text{loading time}) \\
+    %
+    \delta_{int}(\text{unloading}, i, p, \sigma) &= 
+        (\text{waiting for cap req}, i, p, \infty) \\
     \delta_{int}(\text{loading}, i, p, \sigma) &= (\text{moving}, i, p,
         \text{time to next station}) \\
     \delta_{int}(\text{needs repair}, i, p, \sigma) &= 
-        (\text{in repair}, i, p, \sigma_i) \\
+        (\text{in repair}, i, p, \text{repair time}) \\
     \delta_{int}(\text{in repair}, i, p, \sigma) &= 
-        (\text{moving}, i, p, \text{time to next station}) \\  
+        (\text{moving}, i, p, \text{time to next station}) \\
+    %
     \lambda(\text{moving}, i, p, \sigma) &= \OutMoveReq{(i, t)} \\ 
         & \text{\;where\;} t \text{\;is the constant train ID} \\
     \lambda(\text{unloading}, i, p, \sigma) &= \OutUnloadPassengers{\floor*{p/2}} \\
-    \lambda(\text{loading}, i, p, \sigma) &= \OutRemainingCapacity{p}
+    \lambda(\text{waiting for cap req}, i, p, \sigma) &= \OutRemainingCapacity{C - p}
 \end{align*}
 
 
