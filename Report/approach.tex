@@ -1,7 +1,7 @@
 \section{Approach}
-Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Where simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evalueate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
+Plenty of literature exists on modeling both surface rail networks, which typically cover longer distances, and subway or light-rail systems, which typically operate with a higher train frequency. Where simulations of surface rail networks might focus on maintaining arrival and departure schedules, subway and metro systems are more interested in keeping the trains moving and avoiding deadlock.  Deadlock is a state where no train can advance.  For example, consider a scenario where a train is broken down for an extended period of time.  As time advances, trains continue to arrive behind the disabled train, but are unable to pass.  Eventually all trains are stuck behind the disabled train.  Careful placement and management of track switches can be used to allow trains to overtake and pass a disabled train. These management schemes require modeling and simulation to evaluate their effectiveness.  According to Ref.~\citen{ttcservice}, Toronto subway trains run every two to seven minutes. Even small delays of just a couple minutes can result in relatively significant delays.
 
-The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. A hierarchy and some simple relationships between the components are shown in Fig.~\ref{fig:hierarchy}.  Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the motion of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
+The approach considered here consists of five atomic components coupled together: stations, track sections, trains, passengers and a scheduler. A hierarchy and some simple relationships between the components are shown in Fig.~\ref{fig:hierarchy}.  Stations and track sections are modeled similarly, with the exception that passengers can be unloaded and loaded at stations. Two tracks, one for each direction, join stations together. Each train carries up to a specified maximum number of passengers. The time to load and unload passengers is linearly dependent on the number of passengers involved in the operations. Passengers originate and terminate at stations.  Trains may also suffer from failures, which cause delays in service.  The role of the scheduler is to control the movement of the trains and ensure no collisions or deadlocks occur.  The models for these components are described in more detail in the following sections.
 %
 \begin{figure}[htb]
 	\centering
@@ -20,7 +20,7 @@ X &= \lbrace(\text{``Unload Passengers''},\lbrace u|u\in\mathbb{N}_0\rbrace), \\
 Y &= \lbrace(\text{``Capacity Request''},()), \\ & (\text{``Load Passengers''},\lbrace p|p\in\mathbb{N}_0,p\leq C\rbrace\cup \emptyset)\rbrace \\
 S_{action} &= \lbrace\text{waiting, adding passengers}, \\ & \text{receiving passengers, providing passengers}\rbrace \\
 S_{passengers} &= \lbrace P, |P|\in\mathbb{N}_0^+\rbrace \\
-S &= S_{action}\times S_{passengers} \\
+S &= S_{action}\times S_{passengers}\times \mathbb{R}_0^+ \\
 \delta_{ext}(\text{waiting},e,(\text{''Unload Passsengers''},\lbrace u|u\in\mathbb{N}_0\rbrace)) &= (\text{receiving passengers},\lbrace u\rbrace) \\
 \delta_{ext}(\text{waiting},e,(\text{``Remaining Capacity''},c)) &= (\text{providing passengers},p) \\
 \delta_{int}(\text{waiting}) &= \text{waiting} \\
@@ -33,7 +33,7 @@ ta &= \sigma \\
 \subsection{Track Section Model}
 
 The track section model is needed to control access to track sections. A train
-is permitted to enter a section if their is remaining capacity in the section.
+is permitted to enter a section if there is remaining capacity in the section.
 When a train leaves a section the section's remaining capacity is increased by
 one. The track section model can be represented by the DEVS with ports model 
 below.
@@ -173,7 +173,7 @@ Y &= \lbrace\InMoveRes{(iset,tset)|iset\subseteq N, tset\subseteq T}\rbrace \cup
 S_{action} &= \lbrace \text{waiting, moving trains}\rbrace \\
 S_{position} &= {i|i\in\mathbb{N}_0, i<N} \\
 S_{train} &= {t|t\in\mathbb{N}_0, t<T} \\
-S &= S_{action}\times S_{position}\times S_{train} \\
+S &= S_{action}\times S_{position}\times S_{train}\times\mathbb{R}_0^+ \\
 \delta_{ext}(\text{waiting},e,(\text{``Move Request''},i,t)) &= (\text{moving trains},i,t,\sigma) \\
 \delta_{int}(\text{moving trains},i,t,\sigma) &= \text{waiting} \\
 \delta_{int}(\text{waiting}) &= \text{waiting} \\
