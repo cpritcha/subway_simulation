@@ -16,7 +16,7 @@ The station serves as the creation and destruction point for passengers.  The st
 DEVS_{\textrm{Station}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
 P &= Passenger\ Collection, |P|\in\mathbb{N}_0^+ \\
 C &= \text{Passenger capacity of train} \\
-X &= \lbrace(\text{``Unload Passengers''},\lbrace u|u\in\mathbb{N}_0\rbrace), \\ & (\text{``Remaining Capacity''},\lbrace c|c\in\mathbb{N}_0\rbrace), \\ &\lbrace P\rbrace\rbrace \\
+X &= \lbrace(\text{``Unload Passengers''},\lbrace u|u\in\mathbb{N}_0\rbrace), \\ & (\text{``Remaining Capacity''},\lbrace c|c\in\mathbb{N}_0\rbrace), \\ &(\text(``Add Passengers''),\lbrace P\rbrace\rbrace) \\
 Y &= \lbrace(\text{``Capacity Request''},()), \\ & (\text{``Load Passengers''},\lbrace p|p\in\mathbb{N}_0,p\leq C\rbrace\cup \emptyset)\rbrace \\
 S_{action} &= \lbrace\text{waiting, adding passengers}, \\ & \text{receiving passengers, providing passengers}\rbrace \\
 S_{passengers} &= \lbrace P, |P|\in\mathbb{N}_0^+\rbrace \\
