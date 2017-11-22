@@ -83,9 +83,6 @@ public class Station extends ViewableAtomic {
 					// Figure out how many passengers we can provide
 					int numPassengers = Math.min(passengers.size(), currentTrainCapacity);
 					
-					// First make sure we have a clear list of passengers
-					passengersToBoard.clear();
-					
 					// Put together a list of passengers
 					for (int kp=0; kp < numPassengers; kp++) {
 						passengersToBoard.add((Passenger)passengers.remove());
@@ -100,6 +97,21 @@ public class Station extends ViewableAtomic {
 					// destination, they can disappear into oblivion.
 					// If it is not their final destination, they
 					// will re-enter the passenger queue.
+					//
+					// Also, assume we are only unloading passengers,
+					// and increment the counter locally
+					Passenger p;
+					while (k<x.size()) {
+						p = (Passenger)x.getValOnPort("UnloadPassengers", k);
+						if (!p.getDestination().equals(name)) {
+							// Add the passenger back into the queue
+							// This compensates for deboarding due to
+							// breakdowns
+							passengers.add(p);
+						}
+						
+						k++;
+					}
 				}
 			}
 			
@@ -144,6 +156,9 @@ public class Station extends ViewableAtomic {
 			for (int kp=0; kp<passengersToBoard.size(); kp++) {
 				m.add(makeContent("passengersToBoard",(Passenger)passengersToBoard.get(kp)));
 			}
+			
+			// Passengers have been passed along, so we can clear the list
+			passengersToBoard.clear();
 		}
 		
 		return m;
