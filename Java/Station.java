@@ -10,7 +10,7 @@ import model.modeling.message;
 public class Station extends ViewableAtomic {
 	
 	protected Queue passengers;
-	protected LinkedList passengersToBoard;
+	protected PassengerList passengersToBoard;
 	protected int currentTrainCapacity;
 	protected int stationPassengerCapacity;
 	protected int passengerCreationRate;
@@ -24,6 +24,11 @@ public class Station extends ViewableAtomic {
 	// Store a list of destination stations
     static protected List<String> destinations;
 	
+    // Available ports
+    private static final String UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
+    private static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
+    private static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
+    
 	public Station(String name, int PassengerCapacity, int PassengerCreationRate, int InitialPassengerCount, List<String> Destinations) {
 		super(name);
 		
@@ -34,11 +39,11 @@ public class Station extends ViewableAtomic {
 		destinations = Destinations;
 		
 		// Add the input ports
-		addInport("UnloadPassengers");
-		addInport("RequestPassengers");
+		addInport(UNLOAD_PASSENGERS_PORT);
+		addInport(REQUEST_PASSENGERS_PORT);
 		
 		// Add the output ports
-		addOutport("PassengersToBoard");
+		addOutport(PASSENGERS_TO_BOARD_PORT);
 		
 	}
 	
@@ -56,12 +61,13 @@ public class Station extends ViewableAtomic {
 		}
 		
 		// Initialize the boarding passengers to an empty list
-		passengersToBoard = new LinkedList();
+		passengersToBoard = new PassengerList();
 		
 		super.initialize();
 	}
 	
 	public void delext(double e, message x) {
+		clock = clock + e;
 		Continue(e);
 		
 		// First ensure we're starting from the
@@ -98,19 +104,16 @@ public class Station extends ViewableAtomic {
 					// If it is not their final destination, they
 					// will re-enter the passenger queue.
 					//
-					// Also, assume we are only unloading passengers,
-					// and increment the counter locally
+					PassengerList P = (PassengerList)x.getValOnPort("UnloadPassengers", k);
 					Passenger p;
-					while (k<x.size()) {
-						p = (Passenger)x.getValOnPort("UnloadPassengers", k);
+					for (int kp=0; kp<P.size(); kp++) {
+						p = P.get(kp);
 						if (!p.getDestination().equals(name)) {
 							// Add the passenger back into the queue
 							// This compensates for deboarding due to
 							// breakdowns
 							passengers.add(p);
 						}
-						
-						k++;
 					}
 				}
 			}
@@ -119,6 +122,7 @@ public class Station extends ViewableAtomic {
 	}
 	
 	public void deltint() {
+		clock = clock + sigma;
 		passivate();
 	}
 	
@@ -131,8 +135,8 @@ public class Station extends ViewableAtomic {
 		deltext(0, x);
 	}
 	
-	private List<Passenger> passengerFactory(int passengerCount) {
-		List<Passenger> passengers = new LinkedList<Passenger>();
+	private LinkedList passengerFactory(int passengerCount) {
+		LinkedList passengers = new LinkedList();
 		
 		// Get a random integer to decide the destination
 		Random random = new Random();
@@ -143,7 +147,8 @@ public class Station extends ViewableAtomic {
 			randomNumber = random.nextInt(destinations.size());
 			passengers.add(new Passenger(name,destinations.get(randomNumber)));
 		}
-		// 
+		// Update the time of last passenger creation
+		timeOfLastPassengerCreation = clock;
 		
 		return passengers;
 	}
@@ -153,9 +158,8 @@ public class Station extends ViewableAtomic {
 		
 		if (phaseIs("RequestPassengers")) {
 			// Pass the passengers as a bag of inputs
-			for (int kp=0; kp<passengersToBoard.size(); kp++) {
-				m.add(makeContent("passengersToBoard",(Passenger)passengersToBoard.get(kp)));
-			}
+			PassengerList boardingPassengers = passengersToBoard.copy();
+			m.add(makeContent("passengersToBoard",boardingPassengers));
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();
