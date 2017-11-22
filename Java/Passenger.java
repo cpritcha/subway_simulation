@@ -1,12 +1,16 @@
 package Subway;
 
-public class Passenger {
+import GenCol.*;
+
+public class Passenger extends entity {
 	protected String origin;
 	protected String destination;
 	
 	public Passenger (String Origin, String Destination) {
+		
 		origin = Origin;
 		destination = Destination;
+		
 	}
 	
 	public String getOrigin() {
