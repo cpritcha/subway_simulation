@@ -12,9 +12,10 @@ public class Station extends ViewableAtomic {
 	protected Queue passengers;
 	protected PassengerList passengersToBoard;
 	protected int currentTrainCapacity;
-	protected int stationPassengerCapacity;
 	protected int passengerCreationRate;
 	protected int initialPassengerCount;
+	protected int totalPassengersCreated;
+	protected int totalPassengersArrived;
 	
 	// We need a clock so we can create
 	// passengers at a specific rate
@@ -29,10 +30,9 @@ public class Station extends ViewableAtomic {
     private static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
     private static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
     
-	public Station(String name, int PassengerCapacity, int PassengerCreationRate, int InitialPassengerCount, List<String> Destinations) {
+	public Station(String name, int PassengerCreationRate, int InitialPassengerCount, List<String> Destinations) {
 		super(name);
 		
-		stationPassengerCapacity = PassengerCapacity;
 		passengerCreationRate = PassengerCreationRate;
 		initialPassengerCount = InitialPassengerCount;
 	
@@ -53,6 +53,8 @@ public class Station extends ViewableAtomic {
 		
 		clock = 0.0;
 		timeOfLastPassengerCreation = 0.0;
+		totalPassengersCreated = 0;
+		totalPassengersArrived = 0;
 		
 		// Start with an initial set of passengers
 		passengers = new Queue();
@@ -114,6 +116,10 @@ public class Station extends ViewableAtomic {
 							// breakdowns
 							passengers.add(p);
 						}
+						else {
+							// Update the total number of passengers arrived
+							totalPassengersArrived += 1;
+						}
 					}
 				}
 			}
@@ -136,19 +142,47 @@ public class Station extends ViewableAtomic {
 	}
 	
 	private LinkedList passengerFactory(int passengerCount) {
+		return this.passengerFactory(passengerCount,"random",0);
+	}
+	
+	private LinkedList passengerFactory(int passengerCount, String destinationMode) {
+		return this.passengerFactory(passengerCount, destinationMode, 0);
+	}
+	
+	private LinkedList passengerFactory(int passengerCount, String destinationMode, int destinationIndex) {
 		LinkedList passengers = new LinkedList();
 		
 		// Get a random integer to decide the destination
 		Random random = new Random();
-		int randomNumber;
+		int destinationNumber = 0;
+		if (destinationMode.equals("fixed")) {
+			destinationNumber = destinationIndex;
+		}
 		
 		// Create the passengers
 		for (int k = 0; k < passengerCount; k++) {
-			randomNumber = random.nextInt(destinations.size());
-			passengers.add(new Passenger(name,destinations.get(randomNumber)));
+			// Get a random destination
+			if (destinationMode.equals("random")) {
+				destinationNumber = random.nextInt(destinations.size());
+			}
+			
+			// Add the new passenger given the destination index
+			passengers.add(new Passenger(name,destinations.get(destinationNumber)));
+			
+			// For fixed loop increment after we use the destination
+			// number so that we start with zero
+			if (destinationMode.equals("fixedLoop")) {
+				destinationNumber++;
+				destinationNumber = destinationNumber%destinations.size();
+			}
+			
+			
 		}
 		// Update the time of last passenger creation
 		timeOfLastPassengerCreation = clock;
+		
+		// Update the total number of passengers created
+		totalPassengersCreated += passengerCount;
 		
 		return passengers;
 	}
