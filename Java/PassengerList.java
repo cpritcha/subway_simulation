@@ -3,6 +3,7 @@ package Subway;
 import GenCol.*;
 import java.util.Collection;
 import java.util.LinkedList;
+import java.util.stream.Collectors;
 
 public class PassengerList extends entity {
 	
@@ -44,5 +45,13 @@ public class PassengerList extends entity {
 		PassengerList pCopy = new PassengerList();
 		pCopy.addAll((LinkedList<Passenger>)passengers.clone());
 		return pCopy;
+	}
+
+	public PassengerList filterByDestination(String destination) {
+		PassengerList passengerList = new PassengerList();
+		passengerList.addAll(passengers.stream()
+				.filter(p -> p.getDestination().equals(destination))
+				.collect(Collectors.toList()));
+		return passengerList;
 	}
 }
