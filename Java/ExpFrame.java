@@ -11,8 +11,10 @@ import java.util.Map;
 
 public class ExpFrame extends ViewableDigraph {
 	
-	ArrayList<String> eastStations;
-	ArrayList<String> westStations;
+	ArrayList<String> eastStationNames;
+	ArrayList<String> westStationNames;
+	CircularList<ViewableAtomic> eastLoop;
+	CircularList<ViewableAtomic> westLoop;
 	ArrayList<String> tracks;
 	Map<String,Integer> passengerCreationRates;
 	Map<String,Integer> initialPassengerCounts;
@@ -20,11 +22,18 @@ public class ExpFrame extends ViewableDigraph {
 	public ExpFrame() {
 		super("Experimental Frame");
 		
+		// Add the scheduler
+		Scheduler sch = new Scheduler();
+		add(sch);
+		
 		// Define the station names (in order)
-		eastStations = new ArrayList<String>(Arrays.asList("Kennedy",
+		eastStationNames = new ArrayList<String>(Arrays.asList("Kennedy",
 				"Lawrence East","Ellesmere","Midland","Scarborough Centre","McCowan"));
-		westStations = new ArrayList<String>(Arrays.asList("McCowan","Scarborough Centre",
+		westStationNames = new ArrayList<String>(Arrays.asList("McCowan","Scarborough Centre",
 				"Midland","Ellesmere","Lawrence East","Kennedy"));
+		
+		// Define the tracks from Kennedy to McCowan
+		
 		
 		// Found typical business day ridership here:
 		// https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
@@ -48,6 +57,10 @@ public class ExpFrame extends ViewableDigraph {
 		initialPassengerCounts.put("Midland", 10);
 		initialPassengerCounts.put("Scarborough Centre", 10);
 		initialPassengerCounts.put("McCowan", 10);
+		
+		// Instantiate all of the stations
+		eastLoop = new CircularList(eastStationNames.size()*2);
+		westLoop = new CircularList(westStationNames.size()*2);
 		
 		// Trains
 		// Note: According to the wikipedia Line 3 pages, 6 four-car trains operate

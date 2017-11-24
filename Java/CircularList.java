@@ -1,17 +1,21 @@
 package Subway;
 
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Collection;
 import view.modeling.ViewableAtomic;
 
 @SuppressWarnings("serial")
-public class CircularList<E> extends LinkedList<E> {
+public class CircularList<E> extends ArrayList<E> {
 
 	public CircularList() {
 		super();
 	}
 	
 	public CircularList(Collection<? extends E> c) {
+		super(c);
+	}
+	
+	public CircularList(int c) {
 		super(c);
 	}
 	
