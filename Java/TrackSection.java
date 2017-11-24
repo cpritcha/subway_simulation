@@ -16,22 +16,31 @@ public class TrackSection extends ViewableAtomic {
 
     private final int _length;
     private final int _capacity;
-    private int _remainingCapacity;
-    private Optional<content> _result = Optional.empty();
+    private TreeSet<String> _trainsOnSection = new TreeSet<>();
+    private message _result = new message();
 
     private TrackSection _prevSection;
     private TrackSection _nextSection;
 
-    TrackSection(int length) {
+    public TrackSection(int length) {
+        super("TrackSection: " + Integer.toString(length));
         _length = length;
         _capacity = 1;
-        _remainingCapacity = _capacity;
-        sigma = INFINITY;
+        passivate();
 
         addInport(IN_ACQUIRE_PORT);
         addInport(IN_RELEASE_PORT);
         addOutport(OUT_ACQUIRE_PORT);
         addOutport(OUT_RELEASE_PORT);
+
+        addTestInput(IN_ACQUIRE_PORT, new entity("1"), 0);
+        addTestInput(IN_ACQUIRE_PORT, new entity("2"), 0);
+        addTestInput(IN_RELEASE_PORT, new entity("1"), 0);
+        addTestInput(IN_RELEASE_PORT, new entity("2"), 0);
+    }
+
+    public TrackSection() {
+        this(5);
     }
 
     public int getLength() {
@@ -54,23 +63,30 @@ public class TrackSection extends ViewableAtomic {
         return _nextSection;
     }
 
-    public void deltint() {}
+    public void initialize() {
 
-    private TreeSet<entity> entitiesOnPort(message m, String portName) {
-        TreeSet<entity> entities = new TreeSet<entity>();
+    }
+
+    public void deltint() {
+        _result = new message();
+        passivate();
+    }
+
+    private TreeSet<String> entitiesOnPort(message m, String portName) {
+        TreeSet<String> entities = new TreeSet<String>();
         for (int i = 0; i < m.size(); i++) {
             if (messageOnPort(m, portName, i)) {
-                entities.add(m.getValOnPort(portName, i));
+                entities.add(m.getValOnPort(portName, i).getName());
             }
         }
         return entities;
     }
 
-    private TreeSet<entity> inAcquireEntities(message m) {
+    private TreeSet<String> inAcquireEntities(message m) {
         return entitiesOnPort(m, IN_ACQUIRE_PORT);
     }
 
-    private TreeSet<entity> inReleaseEntities(message m) {
+    private TreeSet<String> inReleaseEntities(message m) {
         return entitiesOnPort(m, IN_RELEASE_PORT);
     }
 
@@ -78,40 +94,38 @@ public class TrackSection extends ViewableAtomic {
         // A predictable iteration order is required so that the order of elements in the bag does not change whether
         // or not the semaphore can be acquired or released. Out messages include the train interface so that if only
         // some acquire or release requests are granted in a time frame we know who to give permission to.
-        TreeSet<entity> inAcquired = inAcquireEntities(x);
-        TreeSet<entity> inReleased = inReleaseEntities(x);
+        TreeSet<String> inAcquired = inAcquireEntities(x);
+        TreeSet<String> inReleased = inReleaseEntities(x);
 
-        for (entity acquireRequest: inAcquired) {
-            String id = acquireRequest.getName();
+        System.out.println("inAquired: " + inAcquired.toString());
+        for (String id: inAcquired) {
             LockEntity le;
-            if (_remainingCapacity > 0) {
-                _remainingCapacity -= 1;
+            if (_trainsOnSection.size() < _capacity && !_trainsOnSection.contains(id)) {
+                _trainsOnSection.add(id);
                 le = new LockEntity(id, true);
             } else {
                 le = new LockEntity(id, false);
             }
-            _result = Optional.of(makeContent(OUT_ACQUIRE_PORT, le));
+            _result.add(makeContent(OUT_ACQUIRE_PORT, le));
         }
 
-        for (entity releaseRequest: inReleased) {
-            String id = releaseRequest.getName();
+        System.out.println("inReleased: " + inReleased.toString());
+        for (String id: inReleased) {
             LockEntity le;
-            if (_remainingCapacity < _capacity) {
-                _remainingCapacity += 1;
+            if (_trainsOnSection.contains(id)) {
+                _trainsOnSection.remove(id);
                 le = new LockEntity(id, true);
             } else {
                 le = new LockEntity(id, false);
             }
-            _result = Optional.of(makeContent(OUT_RELEASE_PORT, le));
+            _result.add(makeContent(OUT_RELEASE_PORT, le));
         }
+        holdIn("busy", 0);
     }
 
     public message out() {
-        message m = new message();
-        if (_result.isPresent()) {
-            m.add(_result.get());
-        }
-        _result = Optional.empty();
-        return m;
+        passivate();
+        System.err.println("Message: " + _result.toString());
+        return _result;
     }
 }
