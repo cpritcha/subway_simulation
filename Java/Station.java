@@ -1,7 +1,7 @@
 package Subway;
 
 import GenCol.*;
-import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
 import view.modeling.ViewableAtomic;
@@ -23,14 +23,14 @@ public class Station extends ViewableAtomic {
 	protected double timeOfLastPassengerCreation;
 	
 	// Store a list of destination stations
-    static protected List<String> destinations;
+    static protected ArrayList<String> destinations;
 	
     // Available ports
-    private static final String UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
-    private static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
-    private static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
+    protected static final String UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
+    protected static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
+    protected static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
     
-	public Station(String name, int PassengerCreationRate, int InitialPassengerCount, List<String> Destinations) {
+	public Station(String name, int PassengerCreationRate, int InitialPassengerCount, ArrayList<String> Destinations) {
 		super(name);
 		
 		passengerCreationRate = PassengerCreationRate;
@@ -79,46 +79,62 @@ public class Station extends ViewableAtomic {
 			for (int k=0; k<x.size(); k++) {
 				// Add passengers
 				if (messageOnPort(x,"RequestPassengers",k)) {
-					// Get the total time since the last passenger addition
-					// and generate some new passengers first
-					int deltaTime = (int)Math.round(clock - timeOfLastPassengerCreation);
-					passengers.addAll(passengerFactory(deltaTime*passengerCreationRate));
-					
+					// First check that the key value in the entity
+					// passed in matches the current station
 					// Get the train capacity from the request message
-					intEnt ent = (intEnt)x.getValOnPort("RequestPassengers", k);
-					currentTrainCapacity = ent.getv();
+					entity ent = x.getValOnPort("RequestPassengers", k);
+					Pair pair = (Pair)ent;
+					String key = (String)pair.getKey();
 					
-					// Figure out how many passengers we can provide
-					int numPassengers = Math.min(passengers.size(), currentTrainCapacity);
-					
-					// Put together a list of passengers
-					for (int kp=0; kp < numPassengers; kp++) {
-						passengersToBoard.add((Passenger)passengers.remove());
+					if (key.equals(this.name)) {
+						currentTrainCapacity = (int)pair.getValue();
+						
+						// Get the total time since the last passenger addition
+						// and generate some new passengers first
+						int deltaTime = (int)Math.round(clock - timeOfLastPassengerCreation);
+						passengers.addAll(passengerFactory(deltaTime*passengerCreationRate));
+						
+						// Figure out how many passengers we can provide
+						int numPassengers = Math.min(passengers.size(), currentTrainCapacity);
+						
+						// Put together a list of passengers
+						for (int kp=0; kp < numPassengers; kp++) {
+							passengersToBoard.add((Passenger)passengers.remove());
+						}
+						
+						// Move immediately to output
+						holdIn("RequestPassengers",0);
 					}
-					
-					// Move immediately to output
-					holdIn("RequestPassengers",0);
 				}
 				
 				else if (messageOnPort(x,"UnloadPassengers",k)) {
-					// Unload the passengers.  If this is their final
-					// destination, they can disappear into oblivion.
-					// If it is not their final destination, they
-					// will re-enter the passenger queue.
-					//
-					PassengerList P = (PassengerList)x.getValOnPort("UnloadPassengers", k);
-					Passenger p;
-					for (int kp=0; kp<P.size(); kp++) {
-						p = P.get(kp);
-						if (!p.getDestination().equals(name)) {
-							// Add the passenger back into the queue
-							// This compensates for deboarding due to
-							// breakdowns
-							passengers.add(p);
-						}
-						else {
-							// Update the total number of passengers arrived
-							totalPassengersArrived += 1;
+					// First check that the key value in the entity
+					// passed in matches the current station
+					// Get the train capacity from the request message
+					entity ent = x.getValOnPort("UnloadPassengers", k);
+					Pair pair = (Pair)ent;
+					String key = (String)pair.getKey();
+					
+					if (key.equals(this.name)) {
+						// Unload the passengers.  If this is their final
+						// destination, they can disappear into oblivion.
+						// If it is not their final destination, they
+						// will re-enter the passenger queue.
+						//
+						PassengerList P = (PassengerList)x.getValOnPort("UnloadPassengers", k);
+						Passenger p;
+						for (int kp=0; kp<P.size(); kp++) {
+							p = P.get(kp);
+							if (!p.getDestination().equals(name)) {
+								// Add the passenger back into the queue
+								// This compensates for deboarding due to
+								// breakdowns
+								passengers.add(p);
+							}
+							else {
+								// Update the total number of passengers arrived
+								totalPassengersArrived += 1;
+							}
 						}
 					}
 				}
