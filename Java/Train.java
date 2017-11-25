@@ -56,8 +56,8 @@ public class Train extends ViewableAtomic {
         return _id;
     }
 
-    private Stream<content> getRelevantMessages(message m) {
-        return m.stream().filter(c -> ((IWithUUID) ((content) c).getValue()).getID() == getID());
+    private Stream<content> getRelevantContent(message m) {
+        return MessageFilterer.getRelevantContent(m, getID());
     }
 
     private boolean getMoveResponse(message m, String portName) {
@@ -65,12 +65,12 @@ public class Train extends ViewableAtomic {
     }
 
     private boolean getMoveToStationResponse(message m) {
-        return getRelevantMessages(m)
+        return getRelevantContent(m)
                 .anyMatch(c -> c.getPortName().equals(IN_MOVE_TO_STATION_PORT));
     }
 
     private Optional<Double> getMoveToSectionResponse(message m) {
-        double timeToNextSection = getRelevantMessages(m)
+        double timeToNextSection = getRelevantContent(m)
                 .filter(c -> c.getPortName().equals(IN_MOVE_TO_TRACK_SECTION_PORT))
                 .map(c -> ((KeyValueEntity<Double>)c.getValue()).getValue())
                 .reduce(0.0, (a, b) -> a + b);
@@ -82,7 +82,7 @@ public class Train extends ViewableAtomic {
     }
 
     private Optional<PassengerList> getPassengerLoad(message m) {
-        Stream<content> cs = getRelevantMessages(m);
+        Stream<content> cs = getRelevantContent(m);
         PassengerList passengers = cs.filter(c -> c.getPortName().equals(IN_PASSENGER_LOAD_PORT))
                 .map(c -> ((KeyValueEntity<PassengerList>) c.getValue()).getValue())
                 .reduce(new PassengerList(), (pl_all, pl) -> {
@@ -97,7 +97,7 @@ public class Train extends ViewableAtomic {
     }
 
     private Optional<Double> getBreakdown(message m) {
-        double totalBreakDownTime = getRelevantMessages(m)
+        double totalBreakDownTime = getRelevantContent(m)
                 .map(c -> ((KeyValueEntity<Double>) c.getValue()).getValue())
                 .reduce(0.0, (a, b) -> a + b);
         if (totalBreakDownTime > 0) {
