@@ -147,3 +147,6 @@ venv.bak/
 # Derived outputs
 
 *.pdf
+
+# MacOSX
+.DS_Store
