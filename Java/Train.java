@@ -31,15 +31,15 @@ public class Train extends ViewableAtomic {
     private static final int PASSENGER_TOTAL_CAPACITY = 85; // 30 sitting and 55 standing
 
     private final UUID _id;
-    private PassengerList _passengers = new PassengerList();
-    private PassengerList _unloadingPassengers = new PassengerList();
-    private message _result = new message();
-    private Optional<String> _stationName = Optional.empty();
+    private PassengerList _passengers;
+    private PassengerList _unloadingPassengers;
+    private Optional<String> _stationName;
 
     public Train(String name) {
         super(name);
         _id = UUID.randomUUID();
-        holdIn(IN_TRANSIT, 0);
+
+        initialize();
 
         addInport(IN_MOVE_TO_STATION_PORT);
         addOutport(OUT_REQUEST_MOVE_TO_STATION_PORT);
@@ -51,6 +51,16 @@ public class Train extends ViewableAtomic {
         addOutport(OUT_PASSENGER_UNLOAD_PORT);
     }
 
+    public Train() {
+        this("Train");
+    }
+
+    public void initialize() {
+        _passengers = new PassengerList();
+        _unloadingPassengers = new PassengerList();
+        _stationName = Optional.empty();
+        holdIn(IN_TRANSIT, 0);
+    }
 
     public UUID getID() {
         return _id;
@@ -90,6 +100,11 @@ public class Train extends ViewableAtomic {
                     return pl_all;
                 });
         if (passengers.size() > 0) {
+            if (_passengers.size() + passengers.size() > PASSENGER_TOTAL_CAPACITY) {
+                String msg = String.format("Train %s does not have enough capacity to admit %d passengers. " +
+                        "Current number of passengers is %d", getName(), passengers.size(), _passengers.size());
+                throw new RuntimeException(msg);
+            }
             return Optional.of(passengers);
         } else {
             return Optional.empty();
