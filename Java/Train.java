@@ -157,10 +157,12 @@ public class Train extends ViewableAtomic {
                 }
                 break;
             case AT_STATION:
-                _unloadingPassengers.clear();
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
-                loadingPassengers.ifPresent(lps -> _passengers.addAll(lps));
-                holdIn(REQUEST_MOVE_TO_SECTION, 0);
+                loadingPassengers.ifPresent(lps -> {
+                    _unloadingPassengers.clear();
+                    _passengers.addAll(lps);
+                    holdIn(REQUEST_MOVE_TO_SECTION, 0);
+                });
                 break;
             case AWAITING_SECTION_GO_AHEAD:
                 _stationName = Optional.empty();
