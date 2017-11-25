@@ -28,9 +28,9 @@ public class Station extends ViewableAtomic {
     static protected ArrayList<String> destinations;
 	
     // Available ports
-    protected static final String UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
-    protected static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
-    protected static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
+    protected static final String IN_UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
+    protected static final String IN_REQUEST_PASSENGERS_PORT = "RequestPassengers";
+    protected static final String OUT_PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
 
     // Unique ID
 	private final UUID _id;
@@ -46,11 +46,11 @@ public class Station extends ViewableAtomic {
 		_id = UUID.randomUUID();
 		
 		// Add the input ports
-		addInport(UNLOAD_PASSENGERS_PORT);
-		addInport(REQUEST_PASSENGERS_PORT);
+		addInport(IN_UNLOAD_PASSENGERS_PORT);
+		addInport(IN_REQUEST_PASSENGERS_PORT);
 		
 		// Add the output ports
-		addOutport(PASSENGERS_TO_BOARD_PORT);
+		addOutport(OUT_PASSENGERS_TO_BOARD_PORT);
 		
 	}
 	
@@ -89,11 +89,11 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("passive")) {
 			for (int k=0; k<x.size(); k++) {
 				// Add passengers
-				if (messageOnPort(x,"RequestPassengers",k)) {
+				if (messageOnPort(x, IN_REQUEST_PASSENGERS_PORT,k)) {
 					// First check that the key value in the entity
 					// passed in matches the current station
 					// Get the train capacity from the request message
-					entity ent = x.getValOnPort("RequestPassengers", k);
+					entity ent = x.getValOnPort(IN_REQUEST_PASSENGERS_PORT, k);
 					Pair pair = (Pair)ent;
 					String key = (String)pair.getKey();
 					
@@ -118,11 +118,11 @@ public class Station extends ViewableAtomic {
 					}
 				}
 				
-				else if (messageOnPort(x,"UnloadPassengers",k)) {
+				else if (messageOnPort(x, IN_UNLOAD_PASSENGERS_PORT,k)) {
 					// First check that the key value in the entity
 					// passed in matches the current station
 					// Get the train capacity from the request message
-					entity ent = x.getValOnPort("UnloadPassengers", k);
+					entity ent = x.getValOnPort(IN_UNLOAD_PASSENGERS_PORT, k);
 					Pair pair = (Pair)ent;
 					String key = (String)pair.getKey();
 					
@@ -132,10 +132,8 @@ public class Station extends ViewableAtomic {
 						// If it is not their final destination, they
 						// will re-enter the passenger queue.
 						//
-						PassengerList P = ((KeyValueEntity<PassengerList>)x.getValOnPort("UnloadPassengers", k)).getValue();
-						Passenger p;
-						for (int kp=0; kp<P.size(); kp++) {
-							p = P.get(kp);
+						PassengerList unloadingPassengers = ((KeyValueEntity<PassengerList>)x.getValOnPort(IN_UNLOAD_PASSENGERS_PORT, k)).getValue();
+						for (Passenger p: unloadingPassengers) {
 							if (!p.getDestination().equals(name)) {
 								// Add the passenger back into the queue
 								// This compensates for deboarding due to
@@ -167,50 +165,50 @@ public class Station extends ViewableAtomic {
 		deltint();
 		deltext(0, x);
 	}
-	
+
 	private LinkedList passengerFactory(int passengerCount) {
 		return this.passengerFactory(passengerCount,"random",0);
 	}
-	
+
 	private LinkedList passengerFactory(int passengerCount, String destinationMode) {
 		return this.passengerFactory(passengerCount, destinationMode, 0);
 	}
-	
+
 	private LinkedList passengerFactory(int passengerCount, String destinationMode, int destinationIndex) {
 		LinkedList passengers = new LinkedList();
-		
+
 		// Get a random integer to decide the destination
 		Random random = new Random();
 		int destinationNumber = 0;
 		if (destinationMode.equals("fixed")) {
 			destinationNumber = destinationIndex;
 		}
-		
+
 		// Create the passengers
 		for (int k = 0; k < passengerCount; k++) {
 			// Get a random destination
 			if (destinationMode.equals("random")) {
 				destinationNumber = random.nextInt(destinations.size());
 			}
-			
+
 			// Add the new passenger given the destination index
 			passengers.add(new Passenger(name,destinations.get(destinationNumber)));
-			
+
 			// For fixed loop increment after we use the destination
 			// number so that we start with zero
 			if (destinationMode.equals("fixedLoop")) {
 				destinationNumber++;
 				destinationNumber = destinationNumber%destinations.size();
 			}
-			
-			
+
+
 		}
 		// Update the time of last passenger creation
 		timeOfLastPassengerCreation = clock;
-		
+
 		// Update the total number of passengers created
 		totalPassengersCreated += passengerCount;
-		
+
 		return passengers;
 	}
 	
@@ -220,7 +218,7 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("RequestPassengers")) {
 			// Pass the passengers as a bag of inputs
 			PassengerList boardingPassengers = passengersToBoard.copy();
-			m.add(makeContent("passengersToBoard", new KeyValueEntity<>(boardingPassengers, getID())));
+			m.add(makeContent(OUT_PASSENGERS_TO_BOARD_PORT, new KeyValueEntity<>(boardingPassengers, getID())));
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();
