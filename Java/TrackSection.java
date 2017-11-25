@@ -2,6 +2,7 @@ package Subway;
 
 import java.util.TreeSet;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import model.modeling.message;
 import GenCol.entity;
@@ -19,7 +20,7 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
     private final int _travelTime;
     private final UUID _id;
 
-    private TreeSet<String> _trainsOnSection = new TreeSet<>();
+    private TreeSet<UUID> _trainsOnSection = new TreeSet<>();
     private message _result = new message();
 
     public TrackSection(int travelTime, int capacity) {
@@ -35,10 +36,12 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
         addOutport(OUT_ACQUIRE_PORT);
         addOutport(OUT_RELEASE_PORT);
 
-        addTestInput(IN_ACQUIRE_PORT, new entity("1"), 0);
-        addTestInput(IN_ACQUIRE_PORT, new entity("2"), 0);
-        addTestInput(IN_RELEASE_PORT, new entity("1"), 0);
-        addTestInput(IN_RELEASE_PORT, new entity("2"), 0);
+        UUID trainID1 = UUID.randomUUID();
+        UUID trainID2 = UUID.randomUUID();
+        addTestInput(IN_ACQUIRE_PORT, new KeyValueEntity<>(getID(), trainID1));
+        addTestInput(IN_ACQUIRE_PORT, new KeyValueEntity<>(getID(), trainID2));
+        addTestInput(IN_RELEASE_PORT, new KeyValueEntity<>(getID(), trainID1));
+        addTestInput(IN_RELEASE_PORT, new KeyValueEntity<>(getID(), trainID2));
     }
 
     public TrackSection(int travelTime) {
@@ -66,21 +69,18 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
         passivate();
     }
 
-    private TreeSet<String> entitiesOnPort(message m, String portName) {
-        TreeSet<String> entities = new TreeSet<String>();
-        for (int i = 0; i < m.size(); i++) {
-            if (messageOnPort(m, portName, i)) {
-                entities.add(m.getValOnPort(portName, i).getName());
-            }
-        }
-        return entities;
+    private TreeSet<UUID> entitiesOnPort(message m, String portName) {
+        return MessageFilterer.getRelevantContent(m, getID())
+                .filter(c -> c.getPortName().equals(portName))
+                .map(c -> ((KeyValueEntity<UUID>)c.getValue()).getValue()) // Extracting the train's UUID
+                .collect(Collectors.toCollection(TreeSet::new));
     }
 
-    private TreeSet<String> inAcquireEntities(message m) {
+    private TreeSet<UUID> getAcquireRequests(message m) {
         return entitiesOnPort(m, IN_ACQUIRE_PORT);
     }
 
-    private TreeSet<String> inReleaseEntities(message m) {
+    private TreeSet<UUID> getReleaseRequests(message m) {
         return entitiesOnPort(m, IN_RELEASE_PORT);
     }
 
@@ -88,29 +88,29 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
         // A predictable iteration order is required so that the order of elements in the bag does not change whether
         // or not the semaphore can be acquired or released. Out messages include the train interface so that if only
         // some acquire or release requests are granted in a time frame we know who to give permission to.
-        TreeSet<String> inAcquired = inAcquireEntities(x);
-        TreeSet<String> inReleased = inReleaseEntities(x);
+        TreeSet<UUID> inAcquired = getAcquireRequests(x);
+        TreeSet<UUID> inReleased = getReleaseRequests(x);
 
         System.out.println("inAquired: " + inAcquired.toString());
-        for (String id: inAcquired) {
-            LockEntity le;
+        for (UUID id: inAcquired) {
+            KeyValueEntity<Boolean> le;
             if (_trainsOnSection.size() < _capacity && !_trainsOnSection.contains(id)) {
                 _trainsOnSection.add(id);
-                le = new LockEntity(id, true);
+                le = new KeyValueEntity<>(id, true);
             } else {
-                le = new LockEntity(id, false);
+                le = new KeyValueEntity<>(id, false);
             }
             _result.add(makeContent(OUT_ACQUIRE_PORT, le));
         }
 
         System.out.println("inReleased: " + inReleased.toString());
-        for (String id: inReleased) {
-            LockEntity le;
+        for (UUID id: inReleased) {
+            KeyValueEntity<Boolean> le;
             if (_trainsOnSection.contains(id)) {
                 _trainsOnSection.remove(id);
-                le = new LockEntity(id, true);
+                le = new KeyValueEntity<>(id, true);
             } else {
-                le = new LockEntity(id, false);
+                le = new KeyValueEntity<>(id, false);
             }
             _result.add(makeContent(OUT_RELEASE_PORT, le));
         }
