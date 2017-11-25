@@ -12,7 +12,7 @@ public class KeyValueEntity<T> extends entity implements IWithUUID {
     private final T _value;
     private final UUID _id;
 
-    public KeyValueEntity(T value, UUID id) {
+    public KeyValueEntity(UUID id, T value) {
         _value = value;
         _id = id;
     }

@@ -218,7 +218,7 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("RequestPassengers")) {
 			// Pass the passengers as a bag of inputs
 			PassengerList boardingPassengers = passengersToBoard.copy();
-			m.add(makeContent(OUT_PASSENGERS_TO_BOARD_PORT, new KeyValueEntity<>(boardingPassengers, getID())));
+			m.add(makeContent(OUT_PASSENGERS_TO_BOARD_PORT, new KeyValueEntity<>(getID(), boardingPassengers)));
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();

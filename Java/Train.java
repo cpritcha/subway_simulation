@@ -49,6 +49,12 @@ public class Train extends ViewableAtomic {
 
         addInport(IN_PASSENGER_LOAD_PORT);
         addOutport(OUT_PASSENGER_UNLOAD_PORT);
+
+        addTestInput(IN_MOVE_TO_STATION_PORT, new KeyEntity(getID()));
+        PassengerList pl = new PassengerList();
+        pl.add(new Passenger("other", getName()));
+        addTestInput(IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), pl));
+        addTestInput(IN_MOVE_TO_TRACK_SECTION_PORT, new KeyValueEntity<Double>(getID(), 7.0));
     }
 
     public Train() {
@@ -70,10 +76,6 @@ public class Train extends ViewableAtomic {
         return MessageFilterer.getRelevantContent(m, getID());
     }
 
-    private boolean getMoveResponse(message m, String portName) {
-        return m.stream().anyMatch(c -> ((content) c).getPortName().equals(portName));
-    }
-
     private boolean getMoveToStationResponse(message m) {
         return getRelevantContent(m)
                 .anyMatch(c -> c.getPortName().equals(IN_MOVE_TO_STATION_PORT));
@@ -93,19 +95,19 @@ public class Train extends ViewableAtomic {
 
     private Optional<PassengerList> getPassengerLoad(message m) {
         Stream<content> cs = getRelevantContent(m);
-        PassengerList passengers = cs.filter(c -> c.getPortName().equals(IN_PASSENGER_LOAD_PORT))
+        PassengerList loadingPassengers = cs.filter(c -> c.getPortName().equals(IN_PASSENGER_LOAD_PORT))
                 .map(c -> ((KeyValueEntity<PassengerList>) c.getValue()).getValue())
                 .reduce(new PassengerList(), (pl_all, pl) -> {
                     pl_all.addAll(pl);
                     return pl_all;
                 });
-        if (passengers.size() > 0) {
-            if (_passengers.size() + passengers.size() > PASSENGER_TOTAL_CAPACITY) {
+        if (loadingPassengers.size() > 0) {
+            if (_passengers.size() + loadingPassengers.size() > PASSENGER_TOTAL_CAPACITY) {
                 String msg = String.format("Train %s does not have enough capacity to admit %d passengers. " +
-                        "Current number of passengers is %d", getName(), passengers.size(), _passengers.size());
+                        "Current number of passengers is %d", getName(), loadingPassengers.size(), _passengers.size());
                 throw new RuntimeException(msg);
             }
-            return Optional.of(passengers);
+            return Optional.of(loadingPassengers);
         } else {
             return Optional.empty();
         }
@@ -135,6 +137,7 @@ public class Train extends ViewableAtomic {
                         .collect(Collectors.toCollection(PassengerList::new));
                 _passengers.removeIf(p -> p.getDestination().equals(_stationName.get()));
                 passivateIn(AT_STATION);
+                break;
             case REQUEST_MOVE_TO_SECTION:
                 passivateIn(AWAITING_SECTION_GO_AHEAD);
                 break;
@@ -157,6 +160,7 @@ public class Train extends ViewableAtomic {
                 _unloadingPassengers.clear();
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
                 loadingPassengers.ifPresent(lps -> _passengers.addAll(lps));
+                holdIn(REQUEST_MOVE_TO_SECTION, 0);
                 break;
             case AWAITING_SECTION_GO_AHEAD:
                 _stationName = Optional.empty();
@@ -178,7 +182,7 @@ public class Train extends ViewableAtomic {
             case OUT_PASSENGER_UNLOAD_PORT:
                 PassengerUnloadRequest pur = new PassengerUnloadRequest(
                         PASSENGER_TOTAL_CAPACITY - _passengers.size(), _unloadingPassengers);
-                m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, new KeyValueEntity<>(pur, getID())));
+                m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, new KeyValueEntity<>(getID(), pur)));
                 break;
         }
         return m;
