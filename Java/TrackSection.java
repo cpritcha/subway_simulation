@@ -1,31 +1,33 @@
 package Subway;
 
-import java.util.Optional;
 import java.util.TreeSet;
+import java.util.UUID;
 
-import model.modeling.content;
 import model.modeling.message;
 import GenCol.entity;
 import view.modeling.ViewableAtomic;
 
-public class TrackSection extends ViewableAtomic {
+public class TrackSection extends ViewableAtomic implements IWithUUID {
     public static final String IN_ACQUIRE_PORT = "inAcquire";
     public static final String IN_RELEASE_PORT = "inRelease";
     public static final String OUT_RELEASE_PORT = "outRelease";
     public static final String OUT_ACQUIRE_PORT = "outAcquire";
 
-    private final int _length;
+    // How many trains can occupy this section at once
     private final int _capacity;
+    // How long it takes to travel through this track section
+    private final int _travelTime;
+    private final UUID _id;
+
     private TreeSet<String> _trainsOnSection = new TreeSet<>();
     private message _result = new message();
 
-    private TrackSection _prevSection;
-    private TrackSection _nextSection;
+    public TrackSection(int travelTime, int capacity) {
+        super("TrackSection: " + Integer.toString(travelTime));
+        _id = UUID.randomUUID();
+        _capacity = capacity;
+        _travelTime = travelTime;
 
-    public TrackSection(int length) {
-        super("TrackSection: " + Integer.toString(length));
-        _length = length;
-        _capacity = 1;
         passivate();
 
         addInport(IN_ACQUIRE_PORT);
@@ -39,32 +41,24 @@ public class TrackSection extends ViewableAtomic {
         addTestInput(IN_RELEASE_PORT, new entity("2"), 0);
     }
 
+    public TrackSection(int travelTime) {
+        this(travelTime, 1);
+    }
+
     public TrackSection() {
-        this(5);
+        this(5, 1);
     }
 
-    public int getLength() {
-        return _length;
+    public UUID getID() {
+        return _id;
     }
 
-    public void setPrevSection(TrackSection prevSection) {
-        _prevSection = prevSection;
-    }
-
-    public void setNextSection(TrackSection nextSection) {
-        _nextSection = nextSection;
-    }
-
-    public TrackSection getPrevSection() {
-        return _prevSection;
-    }
-
-    public TrackSection getNextSection() {
-        return _nextSection;
+    public int getTravelTime() {
+        return _travelTime;
     }
 
     public void initialize() {
-
+        passivate();
     }
 
     public void deltint() {
@@ -124,7 +118,6 @@ public class TrackSection extends ViewableAtomic {
     }
 
     public message out() {
-        passivate();
         System.err.println("Message: " + _result.toString());
         return _result;
     }

@@ -4,6 +4,8 @@ import GenCol.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.Random;
+import java.util.UUID;
+
 import view.modeling.ViewableAtomic;
 import model.modeling.message;
 
@@ -29,6 +31,9 @@ public class Station extends ViewableAtomic {
     protected static final String UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
     protected static final String REQUEST_PASSENGERS_PORT = "RequestPassengers";
     protected static final String PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
+
+    // Unique ID
+	private final UUID _id;
     
 	public Station(String name, int PassengerCreationRate, int InitialPassengerCount, ArrayList<String> Destinations) {
 		super(name);
@@ -37,6 +42,8 @@ public class Station extends ViewableAtomic {
 		initialPassengerCount = InitialPassengerCount;
 	
 		destinations = Destinations;
+
+		_id = UUID.randomUUID();
 		
 		// Add the input ports
 		addInport(UNLOAD_PASSENGERS_PORT);
@@ -67,7 +74,11 @@ public class Station extends ViewableAtomic {
 		
 		super.initialize();
 	}
-	
+
+	public UUID getID() {
+		return _id;
+	}
+
 	public void delext(double e, message x) {
 		clock = clock + e;
 		Continue(e);
@@ -121,7 +132,7 @@ public class Station extends ViewableAtomic {
 						// If it is not their final destination, they
 						// will re-enter the passenger queue.
 						//
-						PassengerList P = (PassengerList)x.getValOnPort("UnloadPassengers", k);
+						PassengerList P = ((KeyValueEntity<PassengerList>)x.getValOnPort("UnloadPassengers", k)).getValue();
 						Passenger p;
 						for (int kp=0; kp<P.size(); kp++) {
 							p = P.get(kp);
@@ -209,7 +220,7 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("RequestPassengers")) {
 			// Pass the passengers as a bag of inputs
 			PassengerList boardingPassengers = passengersToBoard.copy();
-			m.add(makeContent("passengersToBoard",boardingPassengers));
+			m.add(makeContent("passengersToBoard", new KeyValueEntity<>(boardingPassengers, getID())));
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();
