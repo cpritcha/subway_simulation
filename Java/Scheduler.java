@@ -104,24 +104,47 @@ public class Scheduler extends ViewableAtomic {
 					
 					// Get the train position
 					int trainPosition = trainPositions.get(trainID);
+					int nextPosition = (trainPosition+1)%loop.size();
+					
+					// Get the next track instance
+					TrackSection nextTrack = (TrackSection)loop.get(trainPosition+1);
 					
 					// Check if the next segment is populated
 					if (!segmentPopulated.get(trainPosition+1)) {
 						// Tell the train it can move and increment all
 						// the appropriate placeholders/indexes
-						outMessages.add(makeContent());
+						outMessages.add(makeContent(Train.IN_MOVE_TO_TRACK_SECTION_PORT,
+								new KeyValueEntity<>(trainID,(double)nextTrack.getTravelTime())));
+						
+						// Set the 'move to' segment as true and the 'move from' as false
+						segmentPopulated.set(nextPosition, true);
+						segmentPopulated.set(trainPosition, false);
+						
+						// Locally increment the train position
+						trainPositions.put(trainID, nextPosition);		
 					}
-					
-					
 				}
 				else if (messageOnPort(x,Train.OUT_PASSENGER_UNLOAD_PORT,k)) {
 					// Message form is ("Port",(TrainID,Passengers,Capacity))
 				}
 			}
+			
+			// The messages are ready to be sent out
+			holdIn("Messages Processed",0);
 		}
 	}
 	
 	public void deltint() {
 		passivate();
+	}
+	
+	public message out() {
+		if (phaseIs("Messages Processed")) {
+			// The messages are ready to go, send them
+			return outMessages;
+		}
+		else {
+			return new message();
+		}
 	}
 }
