@@ -2,26 +2,23 @@ package Subway;
 
 import GenCol.*;
 
+import java.util.UUID;
+
 public class Passenger extends entity {
-	protected String origin;
-	protected String destination;
+	protected final UUID _origin;
+	protected final UUID _destination;
 	
-	public Passenger (String Origin, String Destination) {
+	public Passenger (UUID origin, UUID destination) {
+		_origin = origin;
+		_destination = destination;
 		
-		origin = Origin;
-		destination = Destination;
-		
 	}
 	
-	public String getOrigin() {
-		return origin;
+	public UUID getOrigin() {
+		return _origin;
 	}
 	
-	public String getDestination() {
-		return destination;
-	}
-	
-	public void setDestination(String Destination) {
-		destination = Destination;
+	public UUID getDestination() {
+		return _destination;
 	}
 }

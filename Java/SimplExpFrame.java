@@ -6,20 +6,14 @@ import view.modeling.ViewableComponent;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class SimplExpFrame extends ViewableDigraph {
 
 	public SimplExpFrame() {
 		super("Simple Experimental Frame");
-		
-		// Define the station names (in order)
-		ArrayList<String> eastStationNames = new ArrayList<String>(Arrays.asList("Kennedy",
-				"Lawrence East"));
-		
+
 		// Define the track lengths from Kennedy to McCowan.
 		// The last element is the long segment from McCowan to Kennedy
 		ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3,4));
@@ -37,20 +31,37 @@ public class SimplExpFrame extends ViewableDigraph {
 		// To compute rates below, take values from spreadsheet, divide riders over
 		// 12 hours and then divide by 2 (since we have one 'station' per direction
 		// for each stop)
-		
-		// Define the passenger creation rates
-		HashMap<String,Integer> passengerCreationRates = new HashMap<String,Integer>();
-		passengerCreationRates.put("Kennedy", 13); 				// 17,969
-		passengerCreationRates.put("Lawrence East", 3);		// 4,326
-		
-		// Define the initial passenger counts
-		HashMap<String,Integer> initialPassengerCounts = new HashMap<String,Integer>();
-		initialPassengerCounts.put("Kennedy", 10);
-		initialPassengerCounts.put("Lawrence East", 10);
-		
+
+		Object[][] stationData = {
+				// Station Name, Passenger Creation Rate
+				{"Kennedy", 13 /* 17,969 */},
+				{"Lawrence East", 3 /* 4,326 */},
+		};
+
+		ArrayList<Station.Builder> stationBuilders = Arrays.stream(stationData)
+				.map(row -> new Station.Builder().with($ -> {
+					$.id = UUID.randomUUID();
+					$.name = (String) row[0];
+					$.initialPassengerCount = 10;
+					$.passengerCreationRate = (int) row[1];
+				})).collect(Collectors.toCollection(ArrayList::new));
+
+		ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)
+				.collect(Collectors.toCollection(ArrayList::new));
+
+		stationBuilders.forEach($ -> {
+			ArrayList<UUID> ds = new ArrayList<>();
+			ds.addAll(destinations);
+			ds.removeIf(id -> id == $.id);
+			$.destinations = ds;
+		});
+
+		ArrayList<Station> stations = stationBuilders.stream()
+				.map(Station.Builder::createStation)
+				.collect(Collectors.toCollection(ArrayList::new));
+
 		// Create an array of loops for passing to the scheduler
-		SubwayLoop eastLoop = new SubwayLoop("Scarborough East",eastStationNames,
-				tracks,passengerCreationRates,initialPassengerCounts);
+		SubwayLoop eastLoop = new SubwayLoop("Scarborough East", tracks, stations);
 		ArrayList<SubwayLoop> loops = new ArrayList<SubwayLoop>();
 		loops.add(eastLoop);
 		
@@ -72,7 +83,7 @@ public class SimplExpFrame extends ViewableDigraph {
 		
 		// Specify the train starting positions
 		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
-		
+
 		// Create an array of train starting positions for passing to the scheduler
 		ArrayList<ArrayList<Integer>> initialTrainPositions = new ArrayList<ArrayList<Integer>>();
 		initialTrainPositions.add(eastTrainPositions);
@@ -106,7 +117,7 @@ public class SimplExpFrame extends ViewableDigraph {
 			addCoupling(currentScheduler,Train.IN_MOVE_TO_TRACK_SECTION_PORT,currentTrainGroup,Train.IN_MOVE_TO_TRACK_SECTION_PORT);
 			addCoupling(currentScheduler,Train.IN_PASSENGER_LOAD_PORT,currentTrainGroup,Train.IN_PASSENGER_LOAD_PORT);
 			addCoupling(currentScheduler,Scheduler.OUT_PASSENGER_LOAD_PORT,currentTrainGroup,Train.IN_PASSENGER_LOAD_PORT);
-			
+
 			// Connect the scheduler to the station group
 			addCoupling(currentScheduler,Train.OUT_PASSENGER_UNLOAD_PORT,currentLoop,Train.OUT_PASSENGER_UNLOAD_PORT);
 			addCoupling(currentLoop,Train.IN_PASSENGER_LOAD_PORT,currentScheduler,Train.IN_PASSENGER_LOAD_PORT);
@@ -114,11 +125,11 @@ public class SimplExpFrame extends ViewableDigraph {
 			addCoupling(currentScheduler,TrackSection.IN_RELEASE_PORT,currentLoop,TrackSection.IN_RELEASE_PORT);
 			addCoupling(currentLoop,TrackSection.OUT_ACQUIRE_PORT,currentScheduler,TrackSection.OUT_ACQUIRE_PORT);
 			addCoupling(currentLoop,TrackSection.OUT_RELEASE_PORT,currentScheduler,TrackSection.OUT_RELEASE_PORT);
-			
+
 		}
-		
+
 		initialize();
-	
+
 	}
 
 }

@@ -33,7 +33,7 @@ public class Train extends ViewableAtomic {
     private final UUID _id;
     private PassengerList _passengers;
     private PassengerList _unloadingPassengers;
-    private Optional<String> _stationName;
+    private Optional<UUID> _stationId;
 
     public Train(String name) {
         super(name);
@@ -54,7 +54,8 @@ public class Train extends ViewableAtomic {
 
         addTestInput(IN_MOVE_TO_STATION_PORT, new KeyEntity(getID()));
         PassengerList pl = new PassengerList();
-        pl.add(new Passenger("other", getName()));
+        UUID otherStationId = UUID.randomUUID();
+        pl.add(new Passenger(otherStationId, getID()));
         addTestInput(IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), pl));
         addTestInput(IN_MOVE_TO_TRACK_SECTION_PORT, new KeyValueEntity<Double>(getID(), 7.0));
         addTestInput(IN_BREAKDOWN_PORT, new KeyValueEntity<>(getID(), 2.0));
@@ -67,7 +68,7 @@ public class Train extends ViewableAtomic {
     public void initialize() {
         _passengers = new PassengerList();
         _unloadingPassengers = new PassengerList();
-        _stationName = Optional.empty();
+        _stationId = Optional.empty();
         holdIn(IN_TRANSIT, 0);
     }
 
@@ -79,9 +80,12 @@ public class Train extends ViewableAtomic {
         return MessageFilterer.getRelevantContent(m, getID());
     }
 
-    private boolean getMoveToStationResponse(message m) {
+    private Optional<UUID> getMoveToStationResponse(message m) {
         return getRelevantContent(m)
-                .anyMatch(c -> c.getPortName().equals(IN_MOVE_TO_STATION_PORT));
+                .filter(c -> c.getPortName().equals(IN_MOVE_TO_STATION_PORT))
+                .map(c -> ((KeyValueEntity<UUID>) c.getValue()).getValue())
+                .sorted()
+                .findFirst();
     }
 
     private Optional<Double> getMoveToSectionResponse(message m) {
@@ -101,8 +105,8 @@ public class Train extends ViewableAtomic {
                 });
         loadingPassengers.ifPresent(lps -> {
             if (_passengers.size() + lps.size() > PASSENGER_TOTAL_CAPACITY) {
-                String msg = String.format("Train %s does not have enough capacity to admit %d passengers. " +
-                        "Current number of passengers is %d", getName(), lps.size(), _passengers.size());
+                String msg = String.format("Train %s does not have enough capacity to admit %d _passengers. " +
+                        "Current number of _passengers is %d", getName(), lps.size(), _passengers.size());
                 throw new RuntimeException(msg);
             }
         });
@@ -125,9 +129,9 @@ public class Train extends ViewableAtomic {
                 break;
             case BEGIN_LOAD_UNLOAD:
                 _unloadingPassengers = _passengers.stream()
-                        .filter(p -> p.getDestination().equals(_stationName.get()))
+                        .filter(p -> p.getDestination().equals(_stationId.get()))
                         .collect(Collectors.toCollection(PassengerList::new));
-                _passengers.removeIf(p -> p.getDestination().equals(_stationName.get()));
+                _passengers.removeIf(p -> p.getDestination().equals(_stationId.get()));
                 passivateIn(AT_STATION);
                 break;
             case REQUEST_MOVE_TO_SECTION:
@@ -143,10 +147,11 @@ public class Train extends ViewableAtomic {
                 sigma = sigma - e + breakdownTime;
                 break;
             case AWAITING_STATION_GO_AHEAD:
-                boolean station_go_ahead = getMoveToStationResponse(x);
-                if (station_go_ahead) {
+                Optional<UUID> station_go_ahead = getMoveToStationResponse(x);
+                station_go_ahead.ifPresent(id -> {
+                    _stationId = Optional.of(id);
                     holdIn(BEGIN_LOAD_UNLOAD, 0);
-                }
+                });
                 break;
             case AT_STATION:
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
@@ -157,7 +162,7 @@ public class Train extends ViewableAtomic {
                 });
                 break;
             case AWAITING_SECTION_GO_AHEAD:
-                _stationName = Optional.empty();
+                _stationId = Optional.empty();
                 Optional<Double> section_go_ahead = getMoveToSectionResponse(x);
                 section_go_ahead.ifPresent(time -> holdIn(IN_TRANSIT, time));
                 break;

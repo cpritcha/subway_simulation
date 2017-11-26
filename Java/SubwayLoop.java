@@ -5,7 +5,9 @@ import view.modeling.ViewableDigraph;
 
 import java.awt.Dimension;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
+import java.util.UUID;
 
 public class SubwayLoop extends ViewableDigraph {
 	
@@ -15,9 +17,7 @@ public class SubwayLoop extends ViewableDigraph {
 	// rather than creating them locally.  This allows us to use
 	// references to track instances, which effectively means
 	// we can share track instances among multiple loops.
-	public SubwayLoop(String name, ArrayList<String> StationNames,
-			ArrayList<TrackSection> TrackSections, Map<String,Integer> PassengerCreationRates,
-			Map<String,Integer> InitialPassengerCounts) {
+	public SubwayLoop(String name, ArrayList<TrackSection> trackSections, ArrayList<Station> stations) {
 		
 		super(name);
 		
@@ -35,25 +35,19 @@ public class SubwayLoop extends ViewableDigraph {
 		// We start with a station and end with a track.
 		// It is assumed the final track links the final station
 		// and the first station.
-		subwayLoop = new CircularList(StationNames.size()*2);
-		int stationIndex, trackIndex;
-		String cName;
-		Station currentStation;
-		TrackSection currentTrack;
-		for (int k=0; k<StationNames.size(); k++) {
-			stationIndex = 2*k;
-			trackIndex = 2*k+1;
-			cName = StationNames.get(k);
-			
-			// Make a list of possible destinations
-			ArrayList<String> possibleDestinations = new ArrayList<String>(StationNames);
-			// Remove the current station
-			possibleDestinations.remove(cName);
-			
-			
-			currentStation = new Station(cName,PassengerCreationRates.get(cName),
-					InitialPassengerCounts.get(cName),possibleDestinations);
-			currentTrack = TrackSections.get(k);
+        subwayLoop = new CircularList(stations.size() * 2);
+        int stationIndex, trackIndex;
+        Station currentStation;
+        TrackSection currentTrack;
+        for (int k = 0; k < trackSections.size(); k++) {
+            stationIndex = 2 * k;
+            trackIndex = 2 * k + 1;
+
+            currentTrack = trackSections.get(k);
+            currentStation = stations.get(k);
+
+            subwayLoop.add(stationIndex, currentStation);
+            subwayLoop.add(trackIndex, currentTrack);
 			
 			subwayLoop.add(stationIndex, currentStation);
 			subwayLoop.add(trackIndex, currentTrack);

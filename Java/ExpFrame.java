@@ -1,26 +1,19 @@
 package Subway;
 
+import javafx.util.Pair;
 import view.modeling.ViewableDigraph;
 import view.modeling.ViewableAtomic;
 import view.modeling.ViewableComponent;
 
 import java.awt.Dimension;
 import java.awt.Point;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.HashMap;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ExpFrame extends ViewableDigraph {
 
 	public ExpFrame() {
 		super("Experimental Frame");
-		
-		// Define the station names (in order)
-		ArrayList<String> eastStationNames = new ArrayList<String>(Arrays.asList("Kennedy",
-				"Lawrence East","Ellesmere","Midland","Scarborough Centre","McCowan"));
-		ArrayList<String> westStationNames = new ArrayList<String>(Arrays.asList("McCowan","Scarborough Centre",
-				"Midland","Ellesmere","Lawrence East","Kennedy"));
 		
 		// Define the track lengths from Kennedy to McCowan.
 		// The last element is the long segment from McCowan to Kennedy
@@ -46,33 +39,53 @@ public class ExpFrame extends ViewableDigraph {
 		// To compute rates below, take values from spreadsheet, divide riders over
 		// 12 hours and then divide by 2 (since we have one 'station' per direction
 		// for each stop)
-		
-		// Define the passenger creation rates
-		HashMap<String,Integer> passengerCreationRates = new HashMap<String,Integer>();
-		passengerCreationRates.put("Kennedy", 13); 				// 17,969
-		passengerCreationRates.put("Lawrence East", 3);		// 4,326
-		passengerCreationRates.put("Ellesmere", 1);			// 865
-		passengerCreationRates.put("Midland", 1);				// 1,358
-		passengerCreationRates.put("Scarborough Centre", 8);	// 10,979
-		passengerCreationRates.put("McCowan", 2);				// 2,857
-		
-		// Define the initial passenger counts
-		HashMap<String,Integer> initialPassengerCounts = new HashMap<String,Integer>();
-		initialPassengerCounts.put("Kennedy", 10);
-		initialPassengerCounts.put("Lawrence East", 10);
-		initialPassengerCounts.put("Ellesmere", 10);
-		initialPassengerCounts.put("Midland", 10);
-		initialPassengerCounts.put("Scarborough Centre", 10);
-		initialPassengerCounts.put("McCowan", 10);
-		
-		// Create an array of loops for passing to the scheduler
-		SubwayLoop eastLoop = new SubwayLoop("Scarborough East",eastStationNames,
-				tracks,passengerCreationRates,initialPassengerCounts);
-		SubwayLoop westLoop = new SubwayLoop("Scarborough West",westStationNames,
-				reversedTracks,passengerCreationRates,initialPassengerCounts);
-		ArrayList<SubwayLoop> loops = new ArrayList<SubwayLoop>();
-		loops.add(eastLoop);
-		loops.add(westLoop);
+
+        Object[][] stationData = {
+                // Station Name, Passenger Creation Rate
+                {"Kennedy", 13 /* 17,969 */},
+                {"Lawrence East", 3 /* 4,326 */},
+                {"Ellesmere", 1 /* 864 */},
+                {"Midland", 1 /* 1,358 */},
+                {"Scarborough Centre", 8 /* 10,979 */},
+                {"McCowan", 2 /* 2,857 */}
+        };
+
+        ArrayList<Station.Builder> stationBuilders = Arrays.stream(stationData)
+                .map(row -> new Station.Builder().with($ -> {
+                    $.id = UUID.randomUUID();
+                    $.name = (String) row[0];
+                    $.initialPassengerCount = 10;
+                    $.passengerCreationRate = (int) row[1];
+                })).collect(Collectors.toCollection(ArrayList::new));
+
+        ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        stationBuilders.forEach(sb -> {
+            ArrayList<UUID> ds = new ArrayList<>();
+            ds.addAll(destinations);
+            ds.removeIf(id -> id == sb.id);
+            sb.destinations = ds;
+        });
+
+        ArrayList<Station.Builder> reverseStationBuilders = new ArrayList<>();
+        reverseStationBuilders.addAll(stationBuilders);
+        Collections.reverse(reverseStationBuilders);
+
+        ArrayList<Station> stations = stationBuilders.stream()
+                .map(Station.Builder::createStation)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        ArrayList<Station> reversedStations = reverseStationBuilders.stream()
+                .map(Station.Builder::createStation)
+                .collect(Collectors.toCollection(ArrayList::new));
+
+        // Create an array of loops for passing to the scheduler
+        SubwayLoop eastLoop = new SubwayLoop("Scarborough East", tracks, stations);
+        SubwayLoop westLoop = new SubwayLoop("Scarborough West", reversedTracks, reversedStations);
+        ArrayList<SubwayLoop> loops = new ArrayList<SubwayLoop>();
+        loops.add(eastLoop);
+        loops.add(westLoop);
 		
 		// Trains
 		// Note: According to the wikipedia Line 3 pages, 6 four-car trains operate
