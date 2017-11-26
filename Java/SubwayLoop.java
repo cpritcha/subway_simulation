@@ -51,9 +51,6 @@ public class SubwayLoop extends ViewableDigraph {
             subwayLoop.add(stationIndex, currentStation);
             subwayLoop.add(trackIndex, currentTrack);
 			
-			subwayLoop.add(stationIndex, currentStation);
-			subwayLoop.add(trackIndex, currentTrack);
-			
 			// Couple the inports
 			addCoupling(this,Train.OUT_PASSENGER_UNLOAD_PORT,currentStation,Train.OUT_PASSENGER_UNLOAD_PORT);
 			addCoupling(this,TrackSection.IN_ACQUIRE_PORT,currentTrack,TrackSection.IN_ACQUIRE_PORT);
