@@ -11,20 +11,18 @@ import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.HashMap;
 
-public class ExpFrame extends ViewableDigraph {
+public class SimplExpFrame extends ViewableDigraph {
 
-	public ExpFrame() {
-		super("Experimental Frame");
+	public SimplExpFrame() {
+		super("Simple Experimental Frame");
 		
 		// Define the station names (in order)
 		ArrayList<String> eastStationNames = new ArrayList<String>(Arrays.asList("Kennedy",
-				"Lawrence East","Ellesmere","Midland","Scarborough Centre","McCowan"));
-		ArrayList<String> westStationNames = new ArrayList<String>(Arrays.asList("McCowan","Scarborough Centre",
-				"Midland","Ellesmere","Lawrence East","Kennedy"));
+				"Lawrence East"));
 		
 		// Define the track lengths from Kennedy to McCowan.
 		// The last element is the long segment from McCowan to Kennedy
-		ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3,2,1,1,1,9));
+		ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3,4));
 		System.out.println("trackLengths.size = "+trackLengths.size());
 		ArrayList<TrackSection> tracks = new ArrayList<TrackSection>(trackLengths.size());
 		System.out.println("tracks.size = "+tracks.size());
@@ -32,16 +30,6 @@ public class ExpFrame extends ViewableDigraph {
 			System.out.println("k = "+k);
 			tracks.add(k, new TrackSection(trackLengths.get(k)));
 		}
-		
-		ArrayList<TrackSection> reversedTracks = new ArrayList<TrackSection>(tracks.size());
-		// Build a reversed array from McCowan to Kennedy using the same object references
-		for (int k=0; k<trackLengths.size()-1; k++) {
-			reversedTracks.add(k, tracks.get(tracks.size()-2-k));
-		}
-		// The last track here should also be the last track in the
-		// original order
-		int lastIndex = tracks.size()-1;
-		reversedTracks.add(lastIndex, tracks.get(lastIndex));
 		
 		// Found typical business day ridership here:
 		// https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
@@ -54,28 +42,17 @@ public class ExpFrame extends ViewableDigraph {
 		HashMap<String,Integer> passengerCreationRates = new HashMap<String,Integer>();
 		passengerCreationRates.put("Kennedy", 13); 				// 17,969
 		passengerCreationRates.put("Lawrence East", 3);		// 4,326
-		passengerCreationRates.put("Ellesmere", 1);			// 865
-		passengerCreationRates.put("Midland", 1);				// 1,358
-		passengerCreationRates.put("Scarborough Centre", 8);	// 10,979
-		passengerCreationRates.put("McCowan", 2);				// 2,857
 		
 		// Define the initial passenger counts
 		HashMap<String,Integer> initialPassengerCounts = new HashMap<String,Integer>();
 		initialPassengerCounts.put("Kennedy", 10);
 		initialPassengerCounts.put("Lawrence East", 10);
-		initialPassengerCounts.put("Ellesmere", 10);
-		initialPassengerCounts.put("Midland", 10);
-		initialPassengerCounts.put("Scarborough Centre", 10);
-		initialPassengerCounts.put("McCowan", 10);
 		
 		// Create an array of loops for passing to the scheduler
 		SubwayLoop eastLoop = new SubwayLoop("Scarborough East",eastStationNames,
 				tracks,passengerCreationRates,initialPassengerCounts);
-		SubwayLoop westLoop = new SubwayLoop("Scarborough West",westStationNames,
-				reversedTracks,passengerCreationRates,initialPassengerCounts);
 		ArrayList<SubwayLoop> loops = new ArrayList<SubwayLoop>();
 		loops.add(eastLoop);
-		loops.add(westLoop);
 		
 		// Trains
 		// Note: According to the wikipedia Line 3 pages, 6 four-car trains operate
@@ -84,26 +61,21 @@ public class ExpFrame extends ViewableDigraph {
 		// train capacity is 30 seated, 55 standing
 		//
 		// Add three trains for each direction
-		ArrayList<String> eastTrainNames = new ArrayList<String>(Arrays.asList("ET1","ET2","ET3"));
-		ArrayList<String> westTrainNames = new ArrayList<String>(Arrays.asList("WT1","WT2","WT3"));
+		ArrayList<String> eastTrainNames = new ArrayList<String>(Arrays.asList("ET1"));
 		
 		// Put the trains into groups
 		TrainGroup eastTrainGroup = new TrainGroup("East Trains",eastTrainNames);
-		TrainGroup westTrainGroup = new TrainGroup("West Trains",westTrainNames);
 		
 		// Add all the train groups into a list
 		ArrayList<TrainGroup> trainGroups = new ArrayList<TrainGroup>();
 		trainGroups.add(eastTrainGroup);
-		trainGroups.add(westTrainGroup);
 		
 		// Specify the train starting positions
 		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
-		ArrayList<Integer> westTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
 		
 		// Create an array of train starting positions for passing to the scheduler
 		ArrayList<ArrayList<Integer>> initialTrainPositions = new ArrayList<ArrayList<Integer>>();
 		initialTrainPositions.add(eastTrainPositions);
-		initialTrainPositions.add(westTrainPositions);
 		
 		// For each of the train groups and Subway Loops, create scheduler
 		TrainGroup currentTrainGroup;
@@ -147,5 +119,4 @@ public class ExpFrame extends ViewableDigraph {
 		initialize();
 	
 	}
-	
 }
