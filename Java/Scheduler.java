@@ -112,14 +112,14 @@ public class Scheduler extends ViewableAtomic {
 					UUID trainID = ent.getID();
 					System.out.println("Train ID: "+trainID);
 					
-					processTrainMove(trainID,Train.IN_MOVE_TO_STATION_PORT,"toStation");
+					processTrainMove(trainID);
 				}
 				else if (messageOnPort(x,Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT,k)) {
 					// Message form is ("Port",TrainID)
 					KeyEntity ent = (KeyEntity)x.getValOnPort(Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, k);
 					UUID trainID = ent.getID();
 					
-					processTrainMove(trainID,Train.IN_MOVE_TO_TRACK_SECTION_PORT,"toTrack");
+					processTrainMove(trainID);
 				}
 				else if (messageOnPort(x,IN_PASSENGER_UNLOAD_PORT,k)) {
 					// Message form is ("Port",(TrainID,Passengers,Capacity))
@@ -160,14 +160,29 @@ public class Scheduler extends ViewableAtomic {
 				}
 			}
 			
+			// Pull out all of the waiting trains and reprocess
+			ArrayList<UUID> trainsToProcess = new ArrayList<UUID>();
+			while (waitingTrains.size()>0) {
+				trainsToProcess.add(waitingTrains.poll());
+			}
+			for (UUID waitingTrain : trainsToProcess) {
+				processTrainMove(waitingTrain);
+			}
+			
 			// The messages are ready to be sent out
 			holdIn("Messages Processed",0);
 		}
 	}
 	
-	private void processTrainMove(UUID trainID,String MessagePort,String mode) {
+	private void processTrainMove(UUID trainID) {
 		// Get the train position
 		int trainPosition = trainPositions.get(trainID);
+		String mode = "toStation";
+		String messagePort = Train.IN_MOVE_TO_STATION_PORT;
+		if (trainPosition%2==0) {
+			mode = "toTrack";
+			messagePort = Train.IN_MOVE_TO_TRACK_SECTION_PORT;
+		}
 		int nextPosition = (trainPosition+1)%loop.size();
 		
 		// Get the next track instance
@@ -177,13 +192,13 @@ public class Scheduler extends ViewableAtomic {
 		if (mode.equals("toTrack")) {
 			nextTrack = (TrackSection)loop.get(trainPosition+1);
 			System.out.println("Next track: "+nextTrack.getName());
-			outMessages.add(makeContent(MessagePort,new KeyValueEntity<Double>(trainID,
+			outMessages.add(makeContent(messagePort,new KeyValueEntity<Double>(trainID,
 					(double)nextTrack.getTravelTime())));
 		}
 		else if (mode.equals("toStation")) {
 			nextStation = (Station)loop.get(trainPosition+1);
 			System.out.println("Next station: "+nextStation.getName());
-			outMessages.add(makeContent(MessagePort,new KeyValueEntity<UUID>(trainID,
+			outMessages.add(makeContent(messagePort,new KeyValueEntity<UUID>(trainID,
 					nextStation.getID())));
 		}
 		
