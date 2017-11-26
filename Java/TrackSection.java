@@ -20,8 +20,8 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
     private final int _travelTime;
     private final UUID _id;
 
-    private TreeSet<UUID> _trainsOnSection = new TreeSet<>();
-    private message _result = new message();
+    private TreeSet<UUID> _trainsOnSection;
+    private message _result;
 
     public TrackSection(int travelTime, int capacity) {
         super("TrackSection: " + Integer.toString(travelTime));
@@ -29,7 +29,7 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
         _capacity = capacity;
         _travelTime = travelTime;
 
-        passivate();
+        initialize();
 
         addInport(IN_ACQUIRE_PORT);
         addInport(IN_RELEASE_PORT);
@@ -61,6 +61,8 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
     }
 
     public void initialize() {
+        _result = new message();
+        _trainsOnSection = new TreeSet<>();
         passivate();
     }
 
