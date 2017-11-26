@@ -66,7 +66,7 @@ public class SimplExpFrame extends ViewableDigraph {
 		trainGroups.add(eastTrainGroup);
 		
 		// Specify the train starting positions
-		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
+		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(1));
 
 		// Create an array of train starting positions for passing to the scheduler
 		ArrayList<ArrayList<Integer>> initialTrainPositions = new ArrayList<ArrayList<Integer>>();

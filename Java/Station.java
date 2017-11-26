@@ -128,7 +128,7 @@ public class Station extends ViewableAtomic {
 		return _id;
 	}
 
-	public void delext(double e, message x) {
+	public void deltext(double e, message x) {
 		clock = clock + e;
 		Continue(e);
 		
