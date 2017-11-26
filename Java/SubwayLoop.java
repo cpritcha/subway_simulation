@@ -77,5 +77,4 @@ public class SubwayLoop extends ViewableDigraph {
 	public ViewableAtomic get(int index) {
 		return this.subwayLoop.get(index);
 	}
-
 }

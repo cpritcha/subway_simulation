@@ -28,11 +28,6 @@ public class Station extends ViewableAtomic {
 	
 	// Store a list of destination stations
     protected ArrayList<UUID> _destinations;
-	
-    // Available ports
-    protected static final String IN_UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
-    protected static final String IN_REQUEST_PASSENGERS_PORT = "RequestPassengers";
-    protected static final String OUT_PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
 
     // Unique ID
 	private final UUID _id;
@@ -141,12 +136,12 @@ public class Station extends ViewableAtomic {
 					// First check that the key value in the entity
 					// passed in matches the current station
 					// Get the train capacity from the request message
-					entity ent = x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k);
-					Pair pair = (Pair)ent;
-					String key = (String)pair.getKey();
+					KeyValueEntity ent = (KeyValueEntity)x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k);
+					UUID trainID = ent.getID();
+					PassengerUnloadRequest pur = (PassengerUnloadRequest)ent.getValue();
 					
-					if (key.equals(this.name)) {
-						currentTrainCapacity = (int)pair.getValue();
+					if (trainID.equals(this.getID())) {
+						currentTrainCapacity = pur.getRemainingCapacity();
 						
 						// Get the total time since the last passenger addition
 						// and generate some new _passengers first
@@ -162,43 +157,10 @@ public class Station extends ViewableAtomic {
 						}
 						
 						// Move immediately to output
-						holdIn("RequestPassengers",0);
+						holdIn("Unloading Passengers",0);
 					}
-				}
-				
-				else if (messageOnPort(x, IN_UNLOAD_PASSENGERS_PORT,k)) {
-					// First check that the key value in the entity
-					// passed in matches the current station
-					// Get the train capacity from the request message
-					entity ent = x.getValOnPort(IN_UNLOAD_PASSENGERS_PORT, k);
-					Pair pair = (Pair)ent;
-					String key = (String)pair.getKey();
-					
-					if (key.equals(this.name)) {
-						// Unload the _passengers.  If this is their final
-						// destination, they can disappear into oblivion.
-						// If it is not their final destination, they
-						// will re-enter the passenger queue.
-						//
-						PassengerList unloadingPassengers = ((KeyValueEntity<PassengerList>)x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k)).getValue();
-						for (Passenger p: unloadingPassengers) {
-							if (!p.getDestination().equals(name)) {
-								// Add the passenger back into the queue
-								// This compensates for deboarding due to
-								// breakdowns
-								passengers.add(p);
-							}
-							else {
-								// Update the total number of _passengers arrived
-								totalPassengersArrived += 1;
-							}
-						}
-					}
-					
-					holdIn("Unloading Passengers",0);
 				}
 			}
-			
 		}
 	}
 	
@@ -206,7 +168,7 @@ public class Station extends ViewableAtomic {
 		clock = clock + sigma;
 		if (phaseIs("Unloading Passengers")) {
 			// Move immediately to generating passengers for the train to load
-			holdIn("Boarding Passenger",0);
+			holdIn("Boarding Passengers",0);
 		}
 		else {
 			passivate();

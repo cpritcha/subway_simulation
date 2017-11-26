@@ -115,5 +115,4 @@ public class SimplExpFrame extends ViewableDigraph {
 		initialize();
 
 	}
-
 }

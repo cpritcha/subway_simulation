@@ -132,8 +132,11 @@ public class Train extends ViewableAtomic {
                         .filter(p -> p.getDestination().equals(_stationId.get()))
                         .collect(Collectors.toCollection(PassengerList::new));
                 _passengers.removeIf(p -> p.getDestination().equals(_stationId.get()));
-                passivateIn(AT_STATION);
+                holdIn(OUT_PASSENGER_UNLOAD_PORT,0.0);
                 break;
+            case OUT_PASSENGER_UNLOAD_PORT:
+            	passivateIn(AT_STATION);
+            	break;
             case REQUEST_MOVE_TO_SECTION:
                 passivateIn(AWAITING_SECTION_GO_AHEAD);
                 break;

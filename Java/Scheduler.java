@@ -125,7 +125,7 @@ public class Scheduler extends ViewableAtomic {
 					// Message form is ("Port",(TrainID,Passengers,Capacity))
 					
 					// Get the station ID from the train ID and repackage the message
-					KeyValueEntity ent = (KeyValueEntity)x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k);
+					KeyValueEntity ent = (KeyValueEntity)x.getValOnPort(IN_PASSENGER_UNLOAD_PORT, k);
 					UUID trainID = ent.getID();
 					
 					// Pull out the passenger unload request as well
