@@ -134,6 +134,10 @@ public class Scheduler extends ViewableAtomic {
 					int trainPosition = trainPositions.get(trainID);
 					UUID stationID = ((Station)loop.get(trainPosition)).getID();
 					
+					System.out.println("Unloading "+pur.getPassengers().size()+" from train "+trainID+
+							" to station "+stationID);
+					System.out.println("Remaining capacity: "+pur.getRemainingCapacity());
+					
 					// Associate this station id with this train.
 					// We should immediately be receiving a follow-up
 					// message from the station with a set of passengers
@@ -153,6 +157,7 @@ public class Scheduler extends ViewableAtomic {
 					PassengerList passengers = (PassengerList)ent.getValue();
 					
 					UUID trainID = stationToTrainMap.get(stationID);
+					System.out.println("Providing "+passengers.size()+" passengers to board train "+trainID);
 					
 					// Generate the output message
 					outMessages.add(makeContent(OUT_PASSENGER_LOAD_PORT,
@@ -187,6 +192,7 @@ public class Scheduler extends ViewableAtomic {
 		
 		// Get the next track instance
 		System.out.println("Current Position: "+trainPosition);
+		System.out.println("Loop size: "+loop.size());
 		TrackSection nextTrack;
 		Station nextStation;
 		if (mode.equals("toTrack")) {
@@ -212,7 +218,8 @@ public class Scheduler extends ViewableAtomic {
 			segmentPopulated.set(trainPosition, false);
 			
 			// Locally increment the train position
-			trainPositions.put(trainID, nextPosition);		
+			trainPositions.put(trainID, nextPosition);
+			System.out.println("Next position: "+nextPosition);
 		}
 		else {
 			// Add the train to the waiting list
