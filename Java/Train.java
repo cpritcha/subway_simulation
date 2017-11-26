@@ -55,6 +55,7 @@ public class Train extends ViewableAtomic {
         pl.add(new Passenger("other", getName()));
         addTestInput(IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), pl));
         addTestInput(IN_MOVE_TO_TRACK_SECTION_PORT, new KeyValueEntity<Double>(getID(), 7.0));
+        addTestInput(IN_BREAKDOWN_PORT, new KeyValueEntity<>(getID(), 2.0));
     }
 
     public Train() {
