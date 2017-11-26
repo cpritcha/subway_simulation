@@ -49,6 +49,8 @@ public class Train extends ViewableAtomic {
 
         addInport(IN_PASSENGER_LOAD_PORT);
         addOutport(OUT_PASSENGER_UNLOAD_PORT);
+        
+        addInport(IN_BREAKDOWN_PORT);
 
         addTestInput(IN_MOVE_TO_STATION_PORT, new KeyEntity(getID()));
         PassengerList pl = new PassengerList();
