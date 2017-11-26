@@ -190,20 +190,20 @@ public class Scheduler extends ViewableAtomic {
 		TrackSection nextTrack;
 		Station nextStation;
 		if (mode.equals("toTrack")) {
-			nextTrack = (TrackSection)loop.get(trainPosition+1);
+			nextTrack = (TrackSection)loop.get(nextPosition);
 			System.out.println("Next track: "+nextTrack.getName());
 			outMessages.add(makeContent(messagePort,new KeyValueEntity<Double>(trainID,
 					(double)nextTrack.getTravelTime())));
 		}
 		else if (mode.equals("toStation")) {
-			nextStation = (Station)loop.get(trainPosition+1);
+			nextStation = (Station)loop.get(nextPosition);
 			System.out.println("Next station: "+nextStation.getName());
 			outMessages.add(makeContent(messagePort,new KeyValueEntity<UUID>(trainID,
 					nextStation.getID())));
 		}
 		
 		// Check if the next segment is populated
-		if (!segmentPopulated.get(trainPosition+1)) {
+		if (!segmentPopulated.get(nextPosition) {
 			// Tell the train it can move and increment all
 			// the appropriate placeholders/indexes
 
