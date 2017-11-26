@@ -51,9 +51,9 @@ public class Scheduler extends ViewableAtomic {
 		
 		// Use a boolean array to keep track of which stations/tracks
 		// are currently populated.
-		segmentPopulated = new ArrayList<Boolean>();
+		segmentPopulated = new ArrayList<Boolean>(loop.size());
 		for (int k=0; k<loop.size(); k++) {
-			segmentPopulated.set(k, false);
+			segmentPopulated.add(false);
 		}
 		
 		// Now include the initial train positions
