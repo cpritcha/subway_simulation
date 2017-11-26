@@ -2,6 +2,7 @@ package Subway;
 
 import GenCol.*;
 import view.modeling.ViewableAtomic;
+import model.modeling.content;
 import model.modeling.message;
 import java.util.HashMap;
 import java.util.PriorityQueue;
@@ -92,29 +93,33 @@ public class Scheduler extends ViewableAtomic {
 		super.initialize();
 	}
 	
-	public void delext(double e, message x) {
+	public void deltext(double e, message x) {
 		Continue(e);
 		
 		// Create a new instance for the output messages
 		outMessages = new message();
 		
-		if (phaseIs("passivate")) {
+		System.out.println("Entering deltext...");
+		
+		if (phaseIs("passive")) {
 			
 			for (int k=0; k<x.size(); k++) {
 				// Handle the move into station requests
 				if (messageOnPort(x,Train.OUT_REQUEST_MOVE_TO_STATION_PORT,k)) {
 					// Message form is ("Port",TrainID)
+					System.out.println("Scheduler Request: Move to station");
 					KeyEntity ent = (KeyEntity)x.getValOnPort(Train.OUT_REQUEST_MOVE_TO_STATION_PORT, k);
 					UUID trainID = ent.getID();
+					System.out.println("Train ID: "+trainID);
 					
-					processTrainMove(trainID,Train.IN_MOVE_TO_STATION_PORT);
+					processTrainMove(trainID,Train.IN_MOVE_TO_STATION_PORT,"toStation");
 				}
 				else if (messageOnPort(x,Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT,k)) {
 					// Message form is ("Port",TrainID)
 					KeyEntity ent = (KeyEntity)x.getValOnPort(Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, k);
 					UUID trainID = ent.getID();
 					
-					processTrainMove(trainID,Train.IN_MOVE_TO_TRACK_SECTION_PORT);
+					processTrainMove(trainID,Train.IN_MOVE_TO_TRACK_SECTION_PORT,"toTrack");
 				}
 				else if (messageOnPort(x,IN_PASSENGER_UNLOAD_PORT,k)) {
 					// Message form is ("Port",(TrainID,Passengers,Capacity))
@@ -160,21 +165,32 @@ public class Scheduler extends ViewableAtomic {
 		}
 	}
 	
-	private void processTrainMove(UUID trainID,String MessagePort) {
+	private void processTrainMove(UUID trainID,String MessagePort,String mode) {
 		// Get the train position
 		int trainPosition = trainPositions.get(trainID);
 		int nextPosition = (trainPosition+1)%loop.size();
 		
 		// Get the next track instance
-		TrackSection nextTrack = (TrackSection)loop.get(trainPosition+1);
+		System.out.println("Current Position: "+trainPosition);
+		TrackSection nextTrack;
+		Station nextStation;
+		if (mode.equals("toTrack")) {
+			nextTrack = (TrackSection)loop.get(trainPosition+1);
+			System.out.println("Next track: "+nextTrack.getName());
+			outMessages.add(makeContent(MessagePort,new KeyValueEntity<>(trainID,
+					(double)nextTrack.getTravelTime())));
+		}
+		else if (mode.equals("toStation")) {
+			nextStation = (Station)loop.get(trainPosition+1);
+			System.out.println("Next station: "+nextStation.getName());
+			outMessages.add(makeContent(MessagePort,new KeyValueEntity<>(trainID,0.0)));
+		}
 		
 		// Check if the next segment is populated
 		if (!segmentPopulated.get(trainPosition+1)) {
 			// Tell the train it can move and increment all
 			// the appropriate placeholders/indexes
-			outMessages.add(makeContent(MessagePort,
-					new KeyValueEntity<>(trainID,(double)nextTrack.getTravelTime())));
-			
+
 			// Set the 'move to' segment as true and the 'move from' as false
 			segmentPopulated.set(nextPosition, true);
 			segmentPopulated.set(trainPosition, false);
