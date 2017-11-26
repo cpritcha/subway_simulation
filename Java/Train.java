@@ -1,5 +1,6 @@
 package Subway;
 
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -33,11 +34,15 @@ public class Train extends ViewableAtomic {
     private final UUID _id;
     private PassengerList _passengers;
     private PassengerList _unloadingPassengers;
-    private Optional<UUID> _stationId;
 
-    public Train(String name) {
+    private PassengerList _initialPassengers;
+
+    public Train(String name, UUID id, PassengerList passengers) {
         super(name);
-        _id = UUID.randomUUID();
+        _id = id;
+        _initialPassengers = passengers;
+        _passengers = new PassengerList();
+        _passengers.addAll(_initialPassengers);
 
         initialize();
 
@@ -52,23 +57,33 @@ public class Train extends ViewableAtomic {
         
         addInport(IN_BREAKDOWN_PORT);
 
-        addTestInput(IN_MOVE_TO_STATION_PORT, new KeyEntity(getID()));
-        PassengerList pl = new PassengerList();
-        UUID otherStationId = UUID.randomUUID();
-        pl.add(new Passenger(otherStationId, getID()));
-        addTestInput(IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), pl));
+        if (passengers.size() > 0) {
+            addTestInput(IN_MOVE_TO_STATION_PORT, new KeyValueEntity<>(getID(), passengers.get(0).getDestination()));
+            addTestInput(IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), passengers));
+        }
         addTestInput(IN_MOVE_TO_TRACK_SECTION_PORT, new KeyValueEntity<Double>(getID(), 7.0));
         addTestInput(IN_BREAKDOWN_PORT, new KeyValueEntity<>(getID(), 2.0));
     }
 
+    public Train(String name) {
+        this(name, UUID.randomUUID(), new PassengerList());
+    }
+
+    public Train(UUID id) {
+        this("Train", id, new PassengerList() {{
+            add(new Passenger(UUID.randomUUID(), id));
+            add(new Passenger(UUID.randomUUID(), id));
+        }});
+    }
+
     public Train() {
-        this("Train");
+        this(UUID.randomUUID());
     }
 
     public void initialize() {
         _passengers = new PassengerList();
+        _passengers.addAll(_initialPassengers);
         _unloadingPassengers = new PassengerList();
-        _stationId = Optional.empty();
         holdIn(IN_TRANSIT, 0);
     }
 
@@ -128,15 +143,9 @@ public class Train extends ViewableAtomic {
                 passivateIn(AWAITING_STATION_GO_AHEAD);
                 break;
             case BEGIN_LOAD_UNLOAD:
-                _unloadingPassengers = _passengers.stream()
-                        .filter(p -> p.getDestination().equals(_stationId.get()))
-                        .collect(Collectors.toCollection(PassengerList::new));
-                _passengers.removeIf(p -> p.getDestination().equals(_stationId.get()));
-                holdIn(OUT_PASSENGER_UNLOAD_PORT,0.0);
+                _unloadingPassengers.clear();
+                passivateIn(AT_STATION);
                 break;
-            case OUT_PASSENGER_UNLOAD_PORT:
-            	passivateIn(AT_STATION);
-            	break;
             case REQUEST_MOVE_TO_SECTION:
                 passivateIn(AWAITING_SECTION_GO_AHEAD);
                 break;
@@ -150,24 +159,26 @@ public class Train extends ViewableAtomic {
                 sigma = sigma - e + breakdownTime;
                 break;
             case AWAITING_STATION_GO_AHEAD:
-                Optional<UUID> station_go_ahead = getMoveToStationResponse(x);
-                station_go_ahead.ifPresent(id -> {
-                    _stationId = Optional.of(id);
+                Optional<UUID> stationGoAhead = getMoveToStationResponse(x);
+                if (stationGoAhead.isPresent()) {
+                    UUID id = stationGoAhead.get();
+                    _unloadingPassengers = _passengers.stream()
+                            .filter(p -> p.getDestination().equals(id))
+                            .collect(Collectors.toCollection(PassengerList::new));
+                    _passengers.removeIf(p -> p.getDestination().equals(id));
                     holdIn(BEGIN_LOAD_UNLOAD, 0);
-                });
+                }
                 break;
             case AT_STATION:
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
                 loadingPassengers.ifPresent(lps -> {
-                    _unloadingPassengers.clear();
                     _passengers.addAll(lps);
                     holdIn(REQUEST_MOVE_TO_SECTION, 0);
                 });
                 break;
             case AWAITING_SECTION_GO_AHEAD:
-                _stationId = Optional.empty();
-                Optional<Double> section_go_ahead = getMoveToSectionResponse(x);
-                section_go_ahead.ifPresent(time -> holdIn(IN_TRANSIT, time));
+                Optional<Double> sectionGoAhead = getMoveToSectionResponse(x);
+                sectionGoAhead.ifPresent(time -> holdIn(IN_TRANSIT, time));
                 break;
         }
     }
@@ -176,15 +187,20 @@ public class Train extends ViewableAtomic {
         message m = new message();
         switch (phase) {
             case REQUEST_MOVE_TO_SECTION:
-                m.add(makeContent(OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, new KeyEntity(getID())));
+                KeyEntity moveToTrackSectionRequest = new KeyEntity(getID());
+                moveToTrackSectionRequest.print();
+                m.add(makeContent(OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, moveToTrackSectionRequest));
                 break;
             case REQUEST_MOVE_TO_STATION:
-                m.add(makeContent(OUT_REQUEST_MOVE_TO_STATION_PORT, new KeyEntity(getID())));
+                KeyEntity moveToStationRequest = new KeyEntity(getID());
+                moveToStationRequest.print();
+                m.add(makeContent(OUT_REQUEST_MOVE_TO_STATION_PORT, moveToStationRequest));
                 break;
-            case OUT_PASSENGER_UNLOAD_PORT:
-                PassengerUnloadRequest pur = new PassengerUnloadRequest(
-                        PASSENGER_TOTAL_CAPACITY - _passengers.size(), _unloadingPassengers);
-                m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, new KeyValueEntity<>(getID(), pur)));
+            case BEGIN_LOAD_UNLOAD:
+                KeyValueEntity<PassengerUnloadRequest> pur = new KeyValueEntity<>(getID(), new PassengerUnloadRequest(
+                        PASSENGER_TOTAL_CAPACITY - _passengers.size(), _unloadingPassengers));
+                pur.print();
+                m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, pur));
                 break;
         }
         return m;

@@ -18,11 +18,15 @@ public class KeyValueEntity<T> extends entity implements IWithUUID {
     }
 
     public String getName() {
-        return _value.toString();
+        return String.format("<KV id=%s value=%s>", _id.toString(), _value.toString());
     }
 
     public T getValue() {
         return _value;
+    }
+
+    public void print() {
+        System.out.println(getName());
     }
 
     public UUID getID() {

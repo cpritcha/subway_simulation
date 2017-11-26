@@ -17,4 +17,12 @@ public class KeyEntity extends entity implements IWithUUID {
     public UUID getID() {
         return _id;
     }
+
+    public String getName() {
+        return String.format("<K id=%s>", _id.toString());
+    }
+
+    public void print() {
+        System.out.println(getName());
+    }
 }

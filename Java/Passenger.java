@@ -21,4 +21,9 @@ public class Passenger extends entity {
 	public UUID getDestination() {
 		return _destination;
 	}
+
+	public String toString() {
+		return String.format("<Passenger origin=%s destination=%s>",
+				_origin.toString(), _destination.toString());
+	}
 }

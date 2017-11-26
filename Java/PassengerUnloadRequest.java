@@ -16,4 +16,9 @@ public class PassengerUnloadRequest {
     public PassengerList getPassengers() {
         return _passengers;
     }
+
+    public String toString() {
+        return String.format("<PassengerUnloadRequest nPassengers=%d nRemainingPassengers=%d",
+                _passengers.size(), _remainingCapacity);
+    }
 }
