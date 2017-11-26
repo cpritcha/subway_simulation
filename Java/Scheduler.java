@@ -203,7 +203,7 @@ public class Scheduler extends ViewableAtomic {
 		}
 		
 		// Check if the next segment is populated
-		if (!segmentPopulated.get(nextPosition) {
+		if (!segmentPopulated.get(nextPosition)) {
 			// Tell the train it can move and increment all
 			// the appropriate placeholders/indexes
 
