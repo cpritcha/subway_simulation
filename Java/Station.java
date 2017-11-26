@@ -26,11 +26,6 @@ public class Station extends ViewableAtomic {
 	
 	// Store a list of destination stations
     static protected ArrayList<String> destinations;
-	
-    // Available ports
-    protected static final String IN_UNLOAD_PASSENGERS_PORT = "UnloadPassengers";
-    protected static final String IN_REQUEST_PASSENGERS_PORT = "RequestPassengers";
-    protected static final String OUT_PASSENGERS_TO_BOARD_PORT = "PassengersToBoard";
 
     // Unique ID
 	private final UUID _id;
@@ -46,11 +41,10 @@ public class Station extends ViewableAtomic {
 		_id = UUID.randomUUID();
 		
 		// Add the input ports
-		addInport(IN_UNLOAD_PASSENGERS_PORT);
-		addInport(IN_REQUEST_PASSENGERS_PORT);
+		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
 		
 		// Add the output ports
-		addOutport(OUT_PASSENGERS_TO_BOARD_PORT);
+		addOutport(Train.IN_PASSENGER_LOAD_PORT);
 		
 	}
 	
@@ -88,41 +82,11 @@ public class Station extends ViewableAtomic {
 		// another phase
 		if (phaseIs("passive")) {
 			for (int k=0; k<x.size(); k++) {
-				// Add passengers
-				if (messageOnPort(x, IN_REQUEST_PASSENGERS_PORT,k)) {
+				if (messageOnPort(x, Train.OUT_PASSENGER_UNLOAD_PORT,k)) {
 					// First check that the key value in the entity
 					// passed in matches the current station
 					// Get the train capacity from the request message
-					entity ent = x.getValOnPort(IN_REQUEST_PASSENGERS_PORT, k);
-					Pair pair = (Pair)ent;
-					String key = (String)pair.getKey();
-					
-					if (key.equals(this.name)) {
-						currentTrainCapacity = (int)pair.getValue();
-						
-						// Get the total time since the last passenger addition
-						// and generate some new passengers first
-						int deltaTime = (int)Math.round(clock - timeOfLastPassengerCreation);
-						passengers.addAll(passengerFactory(deltaTime*passengerCreationRate));
-						
-						// Figure out how many passengers we can provide
-						int numPassengers = Math.min(passengers.size(), currentTrainCapacity);
-						
-						// Put together a list of passengers
-						for (int kp=0; kp < numPassengers; kp++) {
-							passengersToBoard.add((Passenger)passengers.remove());
-						}
-						
-						// Move immediately to output
-						holdIn("RequestPassengers",0);
-					}
-				}
-				
-				else if (messageOnPort(x, IN_UNLOAD_PASSENGERS_PORT,k)) {
-					// First check that the key value in the entity
-					// passed in matches the current station
-					// Get the train capacity from the request message
-					entity ent = x.getValOnPort(IN_UNLOAD_PASSENGERS_PORT, k);
+					entity ent = x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k);
 					Pair pair = (Pair)ent;
 					String key = (String)pair.getKey();
 					
@@ -132,7 +96,7 @@ public class Station extends ViewableAtomic {
 						// If it is not their final destination, they
 						// will re-enter the passenger queue.
 						//
-						PassengerList unloadingPassengers = ((KeyValueEntity<PassengerList>)x.getValOnPort(IN_UNLOAD_PASSENGERS_PORT, k)).getValue();
+						PassengerList unloadingPassengers = ((KeyValueEntity<PassengerList>)x.getValOnPort(Train.OUT_PASSENGER_UNLOAD_PORT, k)).getValue();
 						for (Passenger p: unloadingPassengers) {
 							if (!p.getDestination().equals(name)) {
 								// Add the passenger back into the queue
@@ -146,6 +110,8 @@ public class Station extends ViewableAtomic {
 							}
 						}
 					}
+					
+					holdIn("Unloading Passengers",0);
 				}
 			}
 			
@@ -154,7 +120,13 @@ public class Station extends ViewableAtomic {
 	
 	public void deltint() {
 		clock = clock + sigma;
-		passivate();
+		if (phaseIs("Unloading Passengers")) {
+			// Move immediately to generating passengers for the train to load
+			holdIn("Boarding Passenger",0);
+		}
+		else {
+			passivate();
+		}
 	}
 	
 	/*
@@ -215,10 +187,10 @@ public class Station extends ViewableAtomic {
 	public message out() {
 		message m = new message();
 		
-		if (phaseIs("RequestPassengers")) {
+		if (phaseIs("Boarding Passengers")) {
 			// Pass the passengers as a bag of inputs
 			PassengerList boardingPassengers = passengersToBoard.copy();
-			m.add(makeContent(OUT_PASSENGERS_TO_BOARD_PORT, new KeyValueEntity<>(getID(), boardingPassengers)));
+			m.add(makeContent(Train.IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), boardingPassengers)));
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();

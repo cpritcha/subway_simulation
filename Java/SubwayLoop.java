@@ -9,7 +9,7 @@ import java.util.Map;
 
 public class SubwayLoop extends ViewableDigraph {
 	
-	CircularList<ViewableAtomic> subwayLoop;
+	private CircularList<ViewableAtomic> subwayLoop;
 	
 	// Here we leave the tracks as an input already instantiated
 	// rather than creating them locally.  This allows us to use
@@ -23,9 +23,13 @@ public class SubwayLoop extends ViewableDigraph {
 		
 		// Add the inports
 		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
+		addInport(TrackSection.IN_ACQUIRE_PORT);
+		addInport(TrackSection.IN_RELEASE_PORT);
 		
 		// Add the outports
 		addOutport(Train.IN_PASSENGER_LOAD_PORT);
+		addOutport(TrackSection.OUT_ACQUIRE_PORT);
+		addOutport(TrackSection.OUT_RELEASE_PORT);
 
 		// Build the loop composed of stations and tracks.
 		// We start with a station and end with a track.
@@ -56,9 +60,13 @@ public class SubwayLoop extends ViewableDigraph {
 			
 			// Couple the inports
 			addCoupling(this,Train.OUT_PASSENGER_UNLOAD_PORT,currentStation,Train.OUT_PASSENGER_UNLOAD_PORT);
+			addCoupling(this,TrackSection.IN_ACQUIRE_PORT,currentTrack,TrackSection.IN_ACQUIRE_PORT);
+			addCoupling(this,TrackSection.IN_RELEASE_PORT,currentTrack,TrackSection.IN_RELEASE_PORT);
 			
 			// Couple the outports
 			addCoupling(currentStation,Train.IN_PASSENGER_LOAD_PORT,this,Train.IN_PASSENGER_LOAD_PORT);
+			addCoupling(currentTrack,TrackSection.OUT_ACQUIRE_PORT,this,TrackSection.OUT_ACQUIRE_PORT);
+			addCoupling(currentTrack,TrackSection.OUT_RELEASE_PORT,this,TrackSection.OUT_RELEASE_PORT);
 			
 			add(currentStation);
 			add(currentTrack);
@@ -66,6 +74,14 @@ public class SubwayLoop extends ViewableDigraph {
 		
 		initialize();
 		
+	}
+	
+	public int size() {
+		return this.subwayLoop.size();
+	}
+	
+	public ViewableAtomic get(int index) {
+		return this.subwayLoop.get(index);
 	}
 
 }

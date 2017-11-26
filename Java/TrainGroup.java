@@ -9,7 +9,7 @@ import java.util.ArrayList;
 
 public class TrainGroup extends ViewableDigraph {
 
-    ArrayList<Train> trains;
+    protected ArrayList<Train> trains;
 
     public TrainGroup(String name, ArrayList<String> TrainNames) {
         super(name);
@@ -49,6 +49,14 @@ public class TrainGroup extends ViewableDigraph {
         }
 
         initialize();
+    }
+    
+    public Train get(int index) {
+    	return this.trains.get(index);
+    }
+    
+    public int size() {
+    	return this.trains.size();
     }
 
 }
