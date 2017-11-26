@@ -4,6 +4,8 @@ import view.modeling.ViewableDigraph;
 import view.modeling.ViewableAtomic;
 import view.modeling.ViewableComponent;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -23,20 +25,23 @@ public class ExpFrame extends ViewableDigraph {
 		// Define the track lengths from Kennedy to McCowan.
 		// The last element is the long segment from McCowan to Kennedy
 		ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3,2,1,1,1,9));
+		System.out.println("trackLengths.size = "+trackLengths.size());
 		ArrayList<TrackSection> tracks = new ArrayList<TrackSection>(trackLengths.size());
+		System.out.println("tracks.size = "+tracks.size());
 		for (int k=0; k<trackLengths.size(); k++) {
-			tracks.set(k, new TrackSection(trackLengths.get(k)));
+			System.out.println("k = "+k);
+			tracks.add(k, new TrackSection(trackLengths.get(k)));
 		}
 		
 		ArrayList<TrackSection> reversedTracks = new ArrayList<TrackSection>(tracks.size());
 		// Build a reversed array from McCowan to Kennedy using the same object references
 		for (int k=0; k<trackLengths.size()-1; k++) {
-			reversedTracks.set(k, tracks.get(tracks.size()-2-k));
+			reversedTracks.add(k, tracks.get(tracks.size()-2-k));
 		}
 		// The last track here should also be the last track in the
 		// original order
 		int lastIndex = tracks.size()-1;
-		reversedTracks.set(lastIndex, tracks.get(lastIndex));
+		reversedTracks.add(lastIndex, tracks.get(lastIndex));
 		
 		// Found typical business day ridership here:
 		// https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
@@ -101,14 +106,40 @@ public class ExpFrame extends ViewableDigraph {
 		initialTrainPositions.add(westTrainPositions);
 		
 		// For each of the train groups and Subway Loops, create scheduler
+		TrainGroup currentTrainGroup;
+		Scheduler currentScheduler;
+		SubwayLoop currentLoop;
+		ArrayList<Integer> currentInitialPositions;
+		
 		ArrayList<Scheduler> schedulers = new ArrayList<Scheduler>();
 		for (int k=0; k<loops.size(); k++) {
-			schedulers.add(new Scheduler(loops.get(k),trainGroups.get(k),initialTrainPositions.get(k)));
+			currentLoop = loops.get(k);
+			currentTrainGroup = trainGroups.get(k);
+			currentInitialPositions = initialTrainPositions.get(k);
+			currentScheduler = new Scheduler(currentLoop,currentTrainGroup,currentInitialPositions);
+			schedulers.add(currentScheduler);
+			
+			// Add the objects to the experimental frame
+			add(currentLoop);
+			add(currentTrainGroup);
+			add(currentScheduler);
 			
 			// Connect the train group to the scheduler
+			addCoupling(currentTrainGroup,Train.OUT_PASSENGER_UNLOAD_PORT,currentScheduler,Train.OUT_PASSENGER_UNLOAD_PORT);
+			addCoupling(currentTrainGroup,Train.OUT_REQUEST_MOVE_TO_STATION_PORT,currentScheduler,Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
+			addCoupling(currentTrainGroup,Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT,currentScheduler,Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
+			
+			addCoupling(currentScheduler,Train.IN_BREAKDOWN_PORT,currentTrainGroup,Train.IN_BREAKDOWN_PORT);
+			addCoupling(currentScheduler,Train.IN_MOVE_TO_STATION_PORT,currentTrainGroup,Train.IN_MOVE_TO_STATION_PORT);
+			addCoupling(currentScheduler,Train.IN_MOVE_TO_TRACK_SECTION_PORT,currentTrainGroup,Train.IN_MOVE_TO_TRACK_SECTION_PORT);
+			addCoupling(currentScheduler,Train.IN_PASSENGER_LOAD_PORT,currentTrainGroup,Train.IN_PASSENGER_LOAD_PORT);
 			
 			// Connect the scheduler to the station group
+			addCoupling(currentScheduler,Train.OUT_PASSENGER_UNLOAD_PORT,currentLoop,Train.OUT_PASSENGER_UNLOAD_PORT);
+			addCoupling(currentLoop,Train.IN_PASSENGER_LOAD_PORT,currentScheduler,Train.IN_PASSENGER_LOAD_PORT);
 		}
+		
+		initialize();
 	
 	}
 	

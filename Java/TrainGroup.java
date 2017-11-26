@@ -1,7 +1,10 @@
 package Subway;
 
+import view.modeling.ViewableComponent;
 import view.modeling.ViewableDigraph;
 
+import java.awt.Dimension;
+import java.awt.Point;
 import java.util.ArrayList;
 
 public class TrainGroup extends ViewableDigraph {
@@ -47,4 +50,5 @@ public class TrainGroup extends ViewableDigraph {
 
         initialize();
     }
+
 }

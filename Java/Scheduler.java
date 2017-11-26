@@ -34,13 +34,23 @@ public class Scheduler extends ViewableAtomic {
 		trainPositions = InitialTrainPositions;
 		
 		// Create input ports and output ports
+		
+		// From the train group
 		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
 		addInport(Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
 		addInport(Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
 		
+		// From the subway loop
+		addInport(Train.IN_PASSENGER_LOAD_PORT);
+		
+		// To the train group
 		addOutport(Train.IN_BREAKDOWN_PORT);
 		addOutport(Train.IN_MOVE_TO_STATION_PORT);
 		addOutport(Train.IN_MOVE_TO_TRACK_SECTION_PORT);
+		
+		// To the subway group
+		addOutport(Train.OUT_PASSENGER_UNLOAD_PORT);
+		
 	}
 	
 	public void initialize() {
