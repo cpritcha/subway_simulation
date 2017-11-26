@@ -82,45 +82,34 @@ public class Train extends ViewableAtomic {
     }
 
     private Optional<Double> getMoveToSectionResponse(message m) {
-        double timeToNextSection = getRelevantContent(m)
+        return getRelevantContent(m)
                 .filter(c -> c.getPortName().equals(IN_MOVE_TO_TRACK_SECTION_PORT))
-                .map(c -> ((KeyValueEntity<Double>)c.getValue()).getValue())
-                .reduce(0.0, (a, b) -> a + b);
-        if (timeToNextSection == 0) {
-            return Optional.empty();
-        } else {
-            return Optional.of(timeToNextSection);
-        }
+                .map(c -> ((KeyValueEntity<Double>) c.getValue()).getValue())
+                .reduce((a, b) -> a + b);
     }
 
     private Optional<PassengerList> getPassengerLoad(message m) {
         Stream<content> cs = getRelevantContent(m);
-        PassengerList loadingPassengers = cs.filter(c -> c.getPortName().equals(IN_PASSENGER_LOAD_PORT))
+        Optional<PassengerList> loadingPassengers = cs.filter(c -> c.getPortName().equals(IN_PASSENGER_LOAD_PORT))
                 .map(c -> ((KeyValueEntity<PassengerList>) c.getValue()).getValue())
-                .reduce(new PassengerList(), (pl_all, pl) -> {
+                .reduce((pl_all, pl) -> {
                     pl_all.addAll(pl);
                     return pl_all;
                 });
-        if (loadingPassengers.size() > 0) {
-            if (_passengers.size() + loadingPassengers.size() > PASSENGER_TOTAL_CAPACITY) {
+        loadingPassengers.ifPresent(lps -> {
+            if (_passengers.size() + lps.size() > PASSENGER_TOTAL_CAPACITY) {
                 String msg = String.format("Train %s does not have enough capacity to admit %d passengers. " +
-                        "Current number of passengers is %d", getName(), loadingPassengers.size(), _passengers.size());
+                        "Current number of passengers is %d", getName(), lps.size(), _passengers.size());
                 throw new RuntimeException(msg);
             }
-            return Optional.of(loadingPassengers);
-        } else {
-            return Optional.empty();
-        }
+        });
+        return loadingPassengers;
     }
 
-    private Optional<Double> getBreakdown(message m) {
-        double totalBreakDownTime = getRelevantContent(m)
+    private double getBreakdown(message m) {
+        return getRelevantContent(m)
                 .map(c -> ((KeyValueEntity<Double>) c.getValue()).getValue())
                 .reduce(0.0, (a, b) -> a + b);
-        if (totalBreakDownTime > 0) {
-            return Optional.of(totalBreakDownTime);
-        }
-        return Optional.empty();
     }
 
     public void deltint() {
@@ -147,8 +136,8 @@ public class Train extends ViewableAtomic {
     public void deltext(double e, message x) {
         switch (phase) {
             case IN_TRANSIT:
-                Optional<Double> breakdownTime = getBreakdown(x);
-                sigma = sigma - e + breakdownTime.orElse(0.0);
+                double breakdownTime = getBreakdown(x);
+                sigma = sigma - e + breakdownTime;
                 break;
             case AWAITING_STATION_GO_AHEAD:
                 boolean station_go_ahead = getMoveToStationResponse(x);
