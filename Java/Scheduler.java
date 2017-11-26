@@ -3,27 +3,44 @@ package Subway;
 import GenCol.*;
 import view.modeling.ViewableAtomic;
 import model.modeling.message;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.ArrayList;
 
 public class Scheduler extends ViewableAtomic {
 	
-	protected int numberOfTrains;
-	protected int numberOfStations;
-	protected Queue waitingTrains;
+	// Use a priority queue to keep track of waiting trains.
+	// This way we can order the queue by station number and work
+	// backwards to completely clear any jams.
+	protected PriorityQueue waitingTrains;
 	
-	private static final String REQUEST_MOVE_PORT = "Request Move";
-	private static final String MOVE_RESPONSE_PORT = "Move Response";
+	// Containers for the passed in loops, trains, and train positions
+	SubwayLoop loop;
+	TrainGroup trains;
+	ArrayList<Integer> trainPositions;
 	
-	public Scheduler(int NumberOfTrains, int NumberOfStations) {
+	// Use a map to store the train positions
+	private Map<String, Integer> eastTrainPositions;
+	private Map<String, Integer> westTrainPositions;
+	
+	public Scheduler(SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
 		super("Scheduler");
 		
-		numberOfTrains = NumberOfTrains;
-		numberOfStations = NumberOfStations;
-		waitingTrains = new Queue();
+		// Create a queue to store waiting trains
+		waitingTrains = new PriorityQueue();
 		
-		addInport(REQUEST_MOVE_PORT);
+		loop = Loop;
+		trains = Trains;
+		trainPositions = InitialTrainPositions;
 		
-		addOutport(MOVE_RESPONSE_PORT);
+		// Create input ports and output ports
+		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
+		addInport(Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
+		addInport(Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
 		
+		addOutport(Train.IN_BREAKDOWN_PORT);
+		addOutport(Train.IN_MOVE_TO_STATION_PORT);
+		addOutport(Train.IN_MOVE_TO_TRACK_SECTION_PORT);
 	}
 	
 	public void initialize() {
@@ -36,9 +53,15 @@ public class Scheduler extends ViewableAtomic {
 		
 		if (phaseIs("passivate")) {
 			for (int k=0; k<x.size(); k++) {
-				// Handle the move requests
-				if (messageOnPort(x,"Request Move",k)) {
-					
+				// Handle the move into station requests
+				if (messageOnPort(x,Train.OUT_REQUEST_MOVE_TO_STATION_PORT,k)) {
+					// Message form is ("Port",TrainID)
+				}
+				else if (messageOnPort(x,Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT,k)) {
+					// Message form is ("Port",TrainID)
+				}
+				else if (messageOnPort(x,Train.OUT_PASSENGER_UNLOAD_PORT,k)) {
+					// Message form is ("Port",(TrainID,Passengers,Capacity))
 				}
 			}
 		}
