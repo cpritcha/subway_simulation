@@ -50,23 +50,7 @@ public class ExpFrame extends ViewableDigraph {
                 {"McCowan", 2 /* 2,857 */}
         };
 
-        ArrayList<Station.Builder> stationBuilders = Arrays.stream(stationData)
-                .map(row -> new Station.Builder().with($ -> {
-                    $.id = UUID.randomUUID();
-                    $.name = (String) row[0];
-                    $.initialPassengerCount = 10;
-                    $.passengerCreationRate = (int) row[1];
-                })).collect(Collectors.toCollection(ArrayList::new));
-
-        ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)
-                .collect(Collectors.toCollection(ArrayList::new));
-
-        stationBuilders.forEach(sb -> {
-            ArrayList<UUID> ds = new ArrayList<>();
-            ds.addAll(destinations);
-            ds.removeIf(id -> id == sb.id);
-            sb.destinations = ds;
-        });
+        ArrayList<Station.Builder> stationBuilders = Station.Builder.fromData(stationData);
 
         ArrayList<Station.Builder> reverseStationBuilders = new ArrayList<>();
         reverseStationBuilders.addAll(stationBuilders);

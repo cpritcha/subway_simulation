@@ -38,23 +38,7 @@ public class SimplExpFrame extends ViewableDigraph {
 				{"Lawrence East", 3 /* 4,326 */},
 		};
 
-		ArrayList<Station.Builder> stationBuilders = Arrays.stream(stationData)
-				.map(row -> new Station.Builder().with($ -> {
-					$.id = UUID.randomUUID();
-					$.name = (String) row[0];
-					$.initialPassengerCount = 10;
-					$.passengerCreationRate = (int) row[1];
-				})).collect(Collectors.toCollection(ArrayList::new));
-
-		ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)
-				.collect(Collectors.toCollection(ArrayList::new));
-
-		stationBuilders.forEach($ -> {
-			ArrayList<UUID> ds = new ArrayList<>();
-			ds.addAll(destinations);
-			ds.removeIf(id -> id == $.id);
-			$.destinations = ds;
-		});
+		ArrayList<Station.Builder> stationBuilders = Station.Builder.fromData(stationData);
 
 		ArrayList<Station> stations = stationBuilders.stream()
 				.map(Station.Builder::createStation)

@@ -6,6 +6,7 @@ import java.util.Arrays;
 import java.util.Random;
 import java.util.UUID;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import view.modeling.ViewableAtomic;
 import model.modeling.message;
@@ -67,6 +68,29 @@ public class Station extends ViewableAtomic {
 				Consumer<Builder> builderFunction) {
 			builderFunction.accept(this);
 			return this;
+		}
+
+		public static ArrayList<Builder> fromData(Object[][] data) {
+			// Assume each row of data has a Station Name (String) and a Passenger Creation Rate (int) in that order
+			ArrayList<Station.Builder> stationBuilders = Arrays.stream(data)
+					.map(row -> new Station.Builder().with($ -> {
+						$.id = UUID.randomUUID();
+						$.name = (String) row[0];
+						$.initialPassengerCount = 10;
+						$.passengerCreationRate = (int) row[1];
+					})).collect(Collectors.toCollection(ArrayList::new));
+
+			ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)
+					.collect(Collectors.toCollection(ArrayList::new));
+
+			stationBuilders.forEach($ -> {
+				ArrayList<UUID> ds = new ArrayList<>();
+				ds.addAll(destinations);
+				ds.removeIf(id -> id == $.id);
+				$.destinations = ds;
+			});
+
+			return stationBuilders;
 		}
 
 		public Station createStation() {
