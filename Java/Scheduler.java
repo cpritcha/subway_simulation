@@ -177,13 +177,14 @@ public class Scheduler extends ViewableAtomic {
 		if (mode.equals("toTrack")) {
 			nextTrack = (TrackSection)loop.get(trainPosition+1);
 			System.out.println("Next track: "+nextTrack.getName());
-			outMessages.add(makeContent(MessagePort,new KeyValueEntity<>(trainID,
+			outMessages.add(makeContent(MessagePort,new KeyValueEntity<Double>(trainID,
 					(double)nextTrack.getTravelTime())));
 		}
 		else if (mode.equals("toStation")) {
 			nextStation = (Station)loop.get(trainPosition+1);
 			System.out.println("Next station: "+nextStation.getName());
-			outMessages.add(makeContent(MessagePort,new KeyValueEntity<>(trainID,0.0)));
+			outMessages.add(makeContent(MessagePort,new KeyValueEntity<UUID>(trainID,
+					nextStation.getID())));
 		}
 		
 		// Check if the next segment is populated
