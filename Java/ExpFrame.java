@@ -25,11 +25,8 @@ public class ExpFrame extends ViewableDigraph {
 		// Define the track lengths from Kennedy to McCowan.
 		// The last element is the long segment from McCowan to Kennedy
 		ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3,2,1,1,1,9));
-		System.out.println("trackLengths.size = "+trackLengths.size());
 		ArrayList<TrackSection> tracks = new ArrayList<TrackSection>(trackLengths.size());
-		System.out.println("tracks.size = "+tracks.size());
 		for (int k=0; k<trackLengths.size(); k++) {
-			System.out.println("k = "+k);
 			tracks.add(k, new TrackSection(trackLengths.get(k)));
 		}
 		
@@ -133,6 +130,7 @@ public class ExpFrame extends ViewableDigraph {
 			addCoupling(currentScheduler,Train.IN_MOVE_TO_STATION_PORT,currentTrainGroup,Train.IN_MOVE_TO_STATION_PORT);
 			addCoupling(currentScheduler,Train.IN_MOVE_TO_TRACK_SECTION_PORT,currentTrainGroup,Train.IN_MOVE_TO_TRACK_SECTION_PORT);
 			addCoupling(currentScheduler,Train.IN_PASSENGER_LOAD_PORT,currentTrainGroup,Train.IN_PASSENGER_LOAD_PORT);
+			addCoupling(currentScheduler,Scheduler.OUT_PASSENGER_LOAD_PORT,currentTrainGroup,Train.IN_PASSENGER_LOAD_PORT);
 			
 			// Connect the scheduler to the station group
 			addCoupling(currentScheduler,Train.OUT_PASSENGER_UNLOAD_PORT,currentLoop,Train.OUT_PASSENGER_UNLOAD_PORT);
