@@ -78,6 +78,9 @@ public class SimplExpFrame extends ViewableDigraph {
 		SubwayLoop currentLoop;
 		ArrayList<Integer> currentInitialPositions;
 		
+		// Add the transducer
+		ViewableAtomic transducer = new Transducer();
+		
 		ArrayList<Scheduler> schedulers = new ArrayList<Scheduler>();
 		for (int k=0; k<loops.size(); k++) {
 			currentLoop = loops.get(k);
@@ -110,6 +113,8 @@ public class SimplExpFrame extends ViewableDigraph {
 			addCoupling(currentLoop,TrackSection.OUT_ACQUIRE_PORT,currentScheduler,TrackSection.OUT_ACQUIRE_PORT);
 			addCoupling(currentLoop,TrackSection.OUT_RELEASE_PORT,currentScheduler,TrackSection.OUT_RELEASE_PORT);
 
+			// Couple the scheduler to the transducer
+			addCoupling(currentScheduler,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT,transducer,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
 		}
 
 		initialize();

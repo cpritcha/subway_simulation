@@ -91,8 +91,8 @@ public class ExpFrame extends ViewableDigraph {
 		trainGroups.add(westTrainGroup);
 		
 		// Specify the train starting positions
-		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
-		ArrayList<Integer> westTrainPositions = new ArrayList<Integer>(Arrays.asList(4,2,0));
+		ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(5,3,1));
+		ArrayList<Integer> westTrainPositions = new ArrayList<Integer>(Arrays.asList(5,3,1));
 		
 		// Create an array of train starting positions for passing to the scheduler
 		ArrayList<ArrayList<Integer>> initialTrainPositions = new ArrayList<ArrayList<Integer>>();
@@ -104,6 +104,10 @@ public class ExpFrame extends ViewableDigraph {
 		Scheduler currentScheduler;
 		SubwayLoop currentLoop;
 		ArrayList<Integer> currentInitialPositions;
+		
+		// Add the transducer
+		ViewableAtomic transducer = new Transducer();
+		add(transducer);
 		
 		ArrayList<Scheduler> schedulers = new ArrayList<Scheduler>();
 		for (int k=0; k<loops.size(); k++) {

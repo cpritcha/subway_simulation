@@ -31,6 +31,7 @@ public class Scheduler extends ViewableAtomic {
 	
 	protected static final String IN_PASSENGER_UNLOAD_PORT = "inPassengerUnload";
 	protected static final String OUT_PASSENGER_LOAD_PORT = "outPassengerLoad";
+	protected static final String OUT_N_PASSENGERS_DELIVERED_PORT = "nPassengersDelivered";
 	
 	public Scheduler(SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
 		super("Scheduler");
@@ -85,6 +86,9 @@ public class Scheduler extends ViewableAtomic {
 		// Tracks
 		addOutport(TrackSection.IN_ACQUIRE_PORT);
 		addOutport(TrackSection.IN_RELEASE_PORT);
+		
+		// For the transducer
+		addOutport(OUT_N_PASSENGERS_DELIVERED_PORT);
 		
 	}
 	
@@ -148,6 +152,11 @@ public class Scheduler extends ViewableAtomic {
 					// Package a message for that station
 					outMessages.add(makeContent(Train.OUT_PASSENGER_UNLOAD_PORT,
 							new KeyValueEntity<>(stationID, pur)));
+					
+					// Also add the number of passengers unloaded for the
+					// transducer to track
+					outMessages.add(makeContent(OUT_N_PASSENGERS_DELIVERED_PORT,
+							new intEnt(pur.getPassengers().size())));
 				}
 				else if (messageOnPort(x,Train.IN_PASSENGER_LOAD_PORT,k)) {
 					
