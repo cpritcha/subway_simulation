@@ -10,15 +10,12 @@ public class CoupledBreakdownGenerator extends ViewableDigraph {
 
     private UniformRandom _breakdownLengthGenerator;
     private UniformRandom _timeBetweenBreakdownGenerator;
-    private BreakdownNotifier _breakdownNotifier;
 
     public CoupledBreakdownGenerator(UniformRandom breakdownLengthGenerator,
                                      UniformRandom timeBetweenBreakdownGenerator) {
         super("Breakdown Generator");
         _breakdownLengthGenerator = breakdownLengthGenerator;
         _timeBetweenBreakdownGenerator = timeBetweenBreakdownGenerator;
-        _breakdownNotifier = new BreakdownNotifier();
-        add(_breakdownNotifier);
         initialize();
     }
 
@@ -33,10 +30,6 @@ public class CoupledBreakdownGenerator extends ViewableDigraph {
         String outPortName = t.getName();
         addOutport(outPortName);
         addCoupling(breakdownGenerator, RandomBreakdownGenerator.OUT_BREAKDOWN_PORT, this, outPortName);
-        addCoupling(_breakdownNotifier, BreakdownNotifier.OUT_ELAPSED_PORT,
-                breakdownGenerator, RandomBreakdownGenerator.IN_ELAPSED_PORT);
-        addCoupling(breakdownGenerator, RandomBreakdownGenerator.OUT_BREAKDOWN_PORT,
-                _breakdownNotifier, BreakdownNotifier.IN_BREAKDOWN_PORT);
         return outPortName;
     }
 
@@ -47,7 +40,7 @@ public class CoupledBreakdownGenerator extends ViewableDigraph {
     public void layoutForSimView()
     {
         preferredSize = new Dimension(591, 332);
-        ((ViewableComponent)withName("Breakdowns: A")).setPreferredLocation(new Point(298, 60));
-        ((ViewableComponent)withName("Breakdowns: B")).setPreferredLocation(new Point(264, 203));
+        ((ViewableComponent)withName("Breakdowns: B")).setPreferredLocation(new Point(48, 172));
+        ((ViewableComponent)withName("Breakdowns: A")).setPreferredLocation(new Point(50, 50));
     }
 }

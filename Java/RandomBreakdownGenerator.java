@@ -7,7 +7,6 @@ import view.modeling.ViewableAtomic;
 import java.util.UUID;
 
 public class RandomBreakdownGenerator extends ViewableAtomic {
-    public static final String IN_ELAPSED_PORT = "inElapsed";
     public static final String OUT_BREAKDOWN_PORT = "outBreakdown";
 
     private static final String PASSIVE_PHASE = "passive";
@@ -22,7 +21,6 @@ public class RandomBreakdownGenerator extends ViewableAtomic {
         _lengthOfNextGenerator = breakdownLengthGenerator;
         _timeToNextBreakdownGenerator = timeBetweenBreakdownGenerator;
         _trainId = train.getID();
-        addInport(IN_ELAPSED_PORT);
         addOutport(OUT_BREAKDOWN_PORT);
     }
 
@@ -38,13 +36,19 @@ public class RandomBreakdownGenerator extends ViewableAtomic {
 
     @Override
     public void deltint() {
-        holdIn(PASSIVE_PHASE, _timeToNextBreakdownGenerator.draw());
+        if (phaseIs("emit")) {
+            holdIn(PASSIVE_PHASE, _timeToNextBreakdownGenerator.draw());
+        } else {
+            holdIn("emit", 0);
+        }
     }
 
     @Override
     public message out() {
         message m = new message();
-        m.add(makeContent(OUT_BREAKDOWN_PORT, new KeyValueEntity<>(_trainId, _lengthOfNextGenerator.draw())));
+        if (phaseIs("emit")) {
+            m.add(makeContent(OUT_BREAKDOWN_PORT, new KeyValueEntity<>(_trainId, _lengthOfNextGenerator.draw())));
+        }
         return m;
     }
 }
