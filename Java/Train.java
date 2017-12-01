@@ -4,6 +4,9 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import GenCol.doubleEnt;
+
 import java.util.Random;
 
 import model.modeling.content;
@@ -18,6 +21,7 @@ public class Train extends ViewableAtomic {
     public static final String IN_PASSENGER_LOAD_PORT = "inPassengerLoad";
     public static final String OUT_PASSENGER_UNLOAD_PORT = "outPassengerUnload";
     public static final String IN_BREAKDOWN_PORT = "inBreakdown";
+    public static final String OUT_WAIT_TIME_PORT = "outWaitTime";
 
     // Possible phases
     private static final String REQUEST_MOVE_TO_STATION = "request move to station";
@@ -38,6 +42,7 @@ public class Train extends ViewableAtomic {
     
     private double _minimumLoadTime;
     private double _maxLoadDisturbanceTime;
+    private double _waitTime;
 
     public Train(String name, UUID id, PassengerList passengers, double minimumLoadTime, double maxLoadDisturbanceTime) {
         super(name);
@@ -96,6 +101,7 @@ public class Train extends ViewableAtomic {
         _passengers = new PassengerList();
         _passengers.addAll(_initialPassengers);
         _unloadingPassengers = new PassengerList();
+        _waitTime = 0;
         holdIn(IN_TRANSIT, 0);
     }
 
@@ -152,6 +158,8 @@ public class Train extends ViewableAtomic {
                 holdIn(REQUEST_MOVE_TO_STATION, 0);
                 break;
             case REQUEST_MOVE_TO_STATION:
+            	// Reset the wait time
+            	_waitTime = 0;
                 passivateIn(AWAITING_STATION_GO_AHEAD);
                 break;
             case BEGIN_LOAD_UNLOAD:
@@ -159,18 +167,23 @@ public class Train extends ViewableAtomic {
                 passivateIn(AT_STATION);
                 break;
             case REQUEST_MOVE_TO_SECTION:
+            	// Reset the wait time
+            	_waitTime = 0;
                 passivateIn(AWAITING_SECTION_GO_AHEAD);
                 break;
         }
     }
 
     public void deltext(double e, message x) {
+    	Continue(e);
         switch (phase) {
             case IN_TRANSIT:
                 double breakdownTime = getBreakdown(x);
                 sigma = sigma - e + breakdownTime;
                 break;
             case AWAITING_STATION_GO_AHEAD:
+            	// Update the wait time
+            	_waitTime += e;
                 Optional<UUID> stationGoAhead = getMoveToStationResponse(x);
                 if (stationGoAhead.isPresent()) {
                     UUID id = stationGoAhead.get();
@@ -198,6 +211,8 @@ public class Train extends ViewableAtomic {
                 });
                 break;
             case AWAITING_SECTION_GO_AHEAD:
+            	// Update the wait time
+            	_waitTime += e;
                 Optional<Double> sectionGoAhead = getMoveToSectionResponse(x);
                 sectionGoAhead.ifPresent(time -> holdIn(IN_TRANSIT, time));
                 break;
@@ -222,7 +237,14 @@ public class Train extends ViewableAtomic {
                         PASSENGER_TOTAL_CAPACITY - _passengers.size(), _unloadingPassengers));
                 pur.print();
                 m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, pur));
+                
+                // Also output the wait time for going from track to station
+                m.add(makeContent(OUT_WAIT_TIME_PORT,new doubleEnt(_waitTime)));
                 break;
+            case IN_TRANSIT:
+            	// Output the wait time for going from station to track
+            	m.add(makeContent(OUT_WAIT_TIME_PORT,new doubleEnt(_waitTime)));
+            	break;
         }
         return m;
     }
