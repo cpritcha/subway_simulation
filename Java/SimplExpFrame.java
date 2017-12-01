@@ -59,7 +59,9 @@ public class SimplExpFrame extends ViewableDigraph {
 		ArrayList<String> eastTrainNames = new ArrayList<String>(Arrays.asList("ET1"));
 		
 		// Put the trains into groups
-		TrainGroup eastTrainGroup = new TrainGroup("East Trains",eastTrainNames);
+		double minLoadTime = 15.0/60.0; // Minimum load time in minutes
+		double maxLoadDisturbanceTime = 0.0/60.0; // Maximum additional load time in minutes (random uniform distribution)
+		TrainGroup eastTrainGroup = new TrainGroup("East Trains",eastTrainNames,minLoadTime,maxLoadDisturbanceTime);
 		
 		// Add all the train groups into a list
 		ArrayList<TrainGroup> trainGroups = new ArrayList<TrainGroup>();
@@ -80,6 +82,7 @@ public class SimplExpFrame extends ViewableDigraph {
 		
 		// Add the transducer
 		ViewableAtomic transducer = new Transducer();
+		add(transducer);
 		
 		ArrayList<Scheduler> schedulers = new ArrayList<Scheduler>();
 		for (int k=0; k<loops.size(); k++) {

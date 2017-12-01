@@ -4,6 +4,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import java.util.Random;
 
 import model.modeling.content;
 import model.modeling.message;
@@ -34,13 +35,22 @@ public class Train extends ViewableAtomic {
     private PassengerList _unloadingPassengers;
 
     private PassengerList _initialPassengers;
+    
+    private double _minimumLoadTime;
+    private double _maxLoadDisturbanceTime;
 
-    public Train(String name, UUID id, PassengerList passengers) {
+    public Train(String name, UUID id, PassengerList passengers, double minimumLoadTime, double maxLoadDisturbanceTime) {
         super(name);
         _id = id;
         _initialPassengers = passengers;
         _passengers = new PassengerList();
         _passengers.addAll(_initialPassengers);
+        
+        // These are the delay times for loading
+        // and unloading passengers.  The time should
+        // be given in minutes
+        _minimumLoadTime = minimumLoadTime;
+        _maxLoadDisturbanceTime = maxLoadDisturbanceTime;
 
         initialize();
 
@@ -64,14 +74,18 @@ public class Train extends ViewableAtomic {
     }
 
     public Train(String name) {
-        this(name, UUID.randomUUID(), new PassengerList());
+        this(name, UUID.randomUUID(), new PassengerList(),15.0/60.0,0.0);
+    }
+    
+    public Train(String name, double minLoadTime, double maxLoadDisturbanceTime) {
+    	this(name, UUID.randomUUID(),new PassengerList(), minLoadTime, maxLoadDisturbanceTime);
     }
 
     public Train(UUID id) {
         this("Train", id, new PassengerList() {{
             add(new Passenger(UUID.randomUUID(), id));
             add(new Passenger(UUID.randomUUID(), id));
-        }});
+        }},15.0/60.0,0.0);
     }
 
     public Train() {
@@ -164,14 +178,23 @@ public class Train extends ViewableAtomic {
                             .filter(p -> p.getDestination().equals(id))
                             .collect(Collectors.toCollection(PassengerList::new));
                     _passengers.removeIf(p -> p.getDestination().equals(id));
-                    holdIn(BEGIN_LOAD_UNLOAD, 0);
+                    
+                    // Compute the time required to unload passengers
+                    Random random = new Random();
+                    double unloadTime = _minimumLoadTime + random.nextDouble()*_maxLoadDisturbanceTime;
+                    holdIn(BEGIN_LOAD_UNLOAD, unloadTime);
                 }
                 break;
             case AT_STATION:
+            	// Compute the time required to load passengers
+                Random random = new Random();
+                double loadTime = _minimumLoadTime + random.nextDouble()*_maxLoadDisturbanceTime;
+            	
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
                 loadingPassengers.ifPresent(lps -> {
                     _passengers.addAll(lps);
-                    holdIn(REQUEST_MOVE_TO_SECTION, 0);
+                    
+                    holdIn(REQUEST_MOVE_TO_SECTION, loadTime);
                 });
                 break;
             case AWAITING_SECTION_GO_AHEAD:
