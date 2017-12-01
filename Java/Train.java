@@ -1,6 +1,5 @@
 package Subway;
 
-import java.util.ArrayList;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -9,7 +8,6 @@ import java.util.stream.Stream;
 import model.modeling.content;
 import model.modeling.message;
 import view.modeling.ViewableAtomic;
-
 
 public class Train extends ViewableAtomic {
     public static final String IN_MOVE_TO_STATION_PORT = "inMoveToStationResponse";

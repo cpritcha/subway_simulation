@@ -5,7 +5,6 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import model.modeling.message;
-import GenCol.entity;
 import view.modeling.ViewableAtomic;
 
 public class TrackSection extends ViewableAtomic implements IWithUUID {
