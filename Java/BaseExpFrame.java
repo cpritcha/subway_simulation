@@ -4,7 +4,9 @@ import view.modeling.ViewableAtomic;
 import view.modeling.ViewableDigraph;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class BaseExpFrame extends ViewableDigraph{
     /* Common exp frame setup code for all classes goes here */
@@ -49,6 +51,10 @@ public class BaseExpFrame extends ViewableDigraph{
         }
 
         initialize();
+    }
+
+    protected ArrayList<TrackSection> createTracks(List<Integer> trackLengths) {
+        return trackLengths.stream().map(TrackSection::new).collect(Collectors.toCollection(ArrayList::new));
     }
 
     protected void coupleTrainGroupAndScheduler(TrainGroup currentTrainGroup, Scheduler currentScheduler) {

@@ -16,12 +16,7 @@ public class SimplExpFrame extends BaseExpFrame {
         // The last element is the long segment from McCowan to Kennedy
         ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3, 4));
         System.out.println("trackLengths.size = " + trackLengths.size());
-        ArrayList<TrackSection> tracks = new ArrayList<TrackSection>(trackLengths.size());
-        System.out.println("tracks.size = " + tracks.size());
-        for (int k = 0; k < trackLengths.size(); k++) {
-            System.out.println("k = " + k);
-            tracks.add(k, new TrackSection(trackLengths.get(k)));
-        }
+        ArrayList<TrackSection> tracks = createTracks(trackLengths);
 
         // Found typical business day ridership here:
         // https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
@@ -44,7 +39,7 @@ public class SimplExpFrame extends BaseExpFrame {
 
         // Create an array of loops for passing to the scheduler
         SubwayLoop eastLoop = new SubwayLoop("Scarborough East", tracks, stations);
-        ArrayList<SubwayLoop> loops = new ArrayList<SubwayLoop>();
+        ArrayList<SubwayLoop> loops = new ArrayList<>();
         loops.add(eastLoop);
 
         // Trains
