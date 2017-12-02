@@ -82,8 +82,10 @@ public class ExpFrame extends ViewableDigraph {
 		ArrayList<String> westTrainNames = new ArrayList<String>(Arrays.asList("WT1","WT2","WT3"));
 		
 		// Put the trains into groups
-		TrainGroup eastTrainGroup = new TrainGroup("East Trains",eastTrainNames);
-		TrainGroup westTrainGroup = new TrainGroup("West Trains",westTrainNames);
+		double minLoadTime = 15.0/60.0; // Minimum load time in minutes
+		double maxLoadDisturbanceTime = 0.0/60.0; // Maximum additional load time in minutes (random uniform distribution)
+		TrainGroup eastTrainGroup = new TrainGroup("East Trains",eastTrainNames,minLoadTime,maxLoadDisturbanceTime);
+		TrainGroup westTrainGroup = new TrainGroup("West Trains",westTrainNames,minLoadTime,maxLoadDisturbanceTime);
 		
 		// Add all the train groups into a list
 		ArrayList<TrainGroup> trainGroups = new ArrayList<TrainGroup>();
@@ -114,7 +116,7 @@ public class ExpFrame extends ViewableDigraph {
 			currentLoop = loops.get(k);
 			currentTrainGroup = trainGroups.get(k);
 			currentInitialPositions = initialTrainPositions.get(k);
-			currentScheduler = new Scheduler(currentLoop,currentTrainGroup,currentInitialPositions);
+			currentScheduler = new Scheduler("Scheduler_"+currentLoop.getName().replaceAll(" ", ""),currentLoop,currentTrainGroup,currentInitialPositions);
 			schedulers.add(currentScheduler);
 			
 			// Add the objects to the experimental frame

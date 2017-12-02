@@ -6,6 +6,9 @@ import model.modeling.content;
 import model.modeling.message;
 import java.util.HashMap;
 import java.util.PriorityQueue;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.UUID;
 
@@ -33,8 +36,14 @@ public class Scheduler extends ViewableAtomic {
 	protected static final String OUT_PASSENGER_LOAD_PORT = "outPassengerLoad";
 	protected static final String OUT_N_PASSENGERS_DELIVERED_PORT = "nPassengersDelivered";
 	
-	public Scheduler(SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
-		super("Scheduler");
+	// A log file to save train histories
+	private FileWriter logWriter;
+	
+	// Use an internal clock
+	protected double clock;
+	
+	public Scheduler(String name,SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
+		super(name);
 		
 		// Create a queue to store waiting trains
 		waitingTrains = new PriorityQueue<UUID>();
@@ -90,14 +99,25 @@ public class Scheduler extends ViewableAtomic {
 		// For the transducer
 		addOutport(OUT_N_PASSENGERS_DELIVERED_PORT);
 		
+		// Open the log file
+		try {
+			logWriter = new FileWriter(new File(this.name+".log"));
+			logWriter.write(String.format("%-10s %-40s %-15s\n", "Clock", "Train ID", "Next Position"));
+			logWriter.flush();
+		} catch (IOException ex) {
+			ex.printStackTrace();
+		}
+		
 	}
 	
 	public void initialize() {
+		clock = 0;
 		passivate();
 		super.initialize();
 	}
 	
 	public void deltext(double e, message x) {
+		clock = clock + e;
 		Continue(e);
 		
 		// Create a new instance for the output messages
@@ -229,6 +249,14 @@ public class Scheduler extends ViewableAtomic {
 			// Locally increment the train position
 			trainPositions.put(trainID, nextPosition);
 			System.out.println("Next position: "+nextPosition);
+			
+			// Write the time, the train, and the next position to the log
+			try {
+				logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, nextPosition));
+				logWriter.flush();
+			} catch (IOException ex) {
+				ex.printStackTrace();
+			}
 		}
 		else {
 			// Add the train to the waiting list
@@ -237,6 +265,7 @@ public class Scheduler extends ViewableAtomic {
 	}
 	
 	public void deltint() {
+		clock = clock + sigma;
 		passivate();
 	}
 	

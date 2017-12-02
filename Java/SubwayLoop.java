@@ -82,10 +82,10 @@ public class SubwayLoop extends ViewableDigraph {
      */
     public void layoutForSimView()
     {
-        preferredSize = new Dimension(591, 332);
-        ((ViewableComponent)withName("Kennedy")).setPreferredLocation(new Point(-6, 34));
+        preferredSize = new Dimension(591, 404);
         ((ViewableComponent)withName("Lawrence East")).setPreferredLocation(new Point(-2, 174));
         ((ViewableComponent)withName("TrackSection: 4")).setPreferredLocation(new Point(48, 242));
         ((ViewableComponent)withName("TrackSection: 3")).setPreferredLocation(new Point(48, 100));
+        ((ViewableComponent)withName("Kennedy")).setPreferredLocation(new Point(-6, 34));
     }
 }
