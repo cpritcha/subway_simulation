@@ -12,6 +12,9 @@ public class Transducer extends ViewableAtomic {
 	protected double clock;
 	protected double total_ta;
 	private int totalPassengersDelivered;
+	private int totalDelayTime;
+	private int delayTimeCount;
+	private int nonzeroDelayTimeCount;
 
 	public Transducer() {
 		this("Transducer", 500);
@@ -27,6 +30,7 @@ public class Transducer extends ViewableAtomic {
 		
 		// Input ports
 		addInport(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
+		addInport(Train.OUT_WAIT_TIME_PORT);
 		
 		initialize();
 	}
@@ -36,6 +40,9 @@ public class Transducer extends ViewableAtomic {
 		clock = 0;
 		total_ta = 0;
 		totalPassengersDelivered = 0;
+		totalDelayTime = 0;
+		delayTimeCount = 0;
+		nonzeroDelayTimeCount = 0;
 		super.initialize();
 	}
 
@@ -49,6 +56,16 @@ public class Transducer extends ViewableAtomic {
 					// Get the entity
 					intEnt nDelivered = (intEnt)x.getValOnPort(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, k);
 					totalPassengersDelivered += nDelivered.getv();
+				}
+				if (messageOnPort(x,Train.OUT_WAIT_TIME_PORT,k)) {
+					// Get the entity
+					doubleEnt delayEnt = (doubleEnt)x.getValOnPort(Train.OUT_WAIT_TIME_PORT, k);
+					double delay = delayEnt.getv();
+					totalDelayTime += delay;
+					delayTimeCount += 1;
+					if (delay>0) {
+						nonzeroDelayTimeCount += 1;
+					}
 				}
 			}
 		}
@@ -69,6 +86,9 @@ public class Transducer extends ViewableAtomic {
 	public void show_state() {
 		System.out.println("State of " + name + ": ");
 		System.out.println("phase, sigma: " + phase + ", " + sigma + " ");
-
+		System.out.println("Total Passengers Carried: "+totalPassengersDelivered);
+		System.out.println("Total Accumulated Delay Time: "+totalDelayTime+" minutes");
+		System.out.println("Overall Average Delay Time: "+totalDelayTime/(double)delayTimeCount);
+		System.out.println("Average Non-zero Delay Time: "+totalDelayTime/(double)nonzeroDelayTimeCount);
 	}
 }

@@ -30,6 +30,7 @@ public class TrainGroup extends ViewableDigraph {
         addOutport(Train.OUT_PASSENGER_UNLOAD_PORT);
         addOutport(Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
         addOutport(Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
+        addOutport(Train.OUT_WAIT_TIME_PORT);
 
         // Couple all of the trains to the in and out ports
         for (Train train : trains) {
@@ -46,6 +47,7 @@ public class TrainGroup extends ViewableDigraph {
             addCoupling(train, Train.OUT_PASSENGER_UNLOAD_PORT, this, Train.OUT_PASSENGER_UNLOAD_PORT);
             addCoupling(train, Train.OUT_REQUEST_MOVE_TO_STATION_PORT, this, Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
             addCoupling(train, Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, this, Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
+            addCoupling(train, Train.OUT_WAIT_TIME_PORT);
         }
 
         initialize();

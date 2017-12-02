@@ -118,6 +118,7 @@ public class SimplExpFrame extends ViewableDigraph {
 
 			// Couple the scheduler to the transducer
 			addCoupling(currentScheduler,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT,transducer,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
+			addCoupling(currentTrainGroup,Train.OUT_WAIT_TIME_PORT,transducer,Train.OUT_WAIT_TIME_PORT);
 		}
 
 		initialize();
