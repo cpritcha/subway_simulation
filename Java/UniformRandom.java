@@ -18,6 +18,8 @@ public class UniformRandom {
         this(new Random(), min , max);
     }
 
+    public double nextDouble() { return _random.nextDouble(); }
+
     public double draw() {
         return (_max - _min) * _random.nextDouble() + _min;
     }

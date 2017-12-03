@@ -20,6 +20,7 @@ public class Train extends ViewableAtomic {
     public static final String OUT_PASSENGER_UNLOAD_PORT = "outPassengerUnload";
     public static final String IN_BREAKDOWN_PORT = "inBreakdown";
     public static final String OUT_WAIT_TIME_PORT = "outWaitTime";
+    public static final String OUT_DELAY_TIME_PORT = "outDelayTime";
     public static final String IN_STOP = "Stop";
 
     // Possible phases
@@ -40,9 +41,13 @@ public class Train extends ViewableAtomic {
     private PassengerList _initialPassengers;
 
     private UniformRandom _loadingTimeDistribution;
+    private UniformRandom _delayTimeDistribution;
+    private double _delayProbability;
     private double _waitTime;
+    private double _delayTime;
 
-    public Train(String name, UUID id, PassengerList passengers, UniformRandom loadingTimeDistribution) {
+    public Train(String name, UUID id, PassengerList passengers, UniformRandom loadingTimeDistribution,
+                 double delayProbability, UniformRandom delayTimeDistribution) {
         super(name);
         _id = id;
         _initialPassengers = passengers;
@@ -53,6 +58,10 @@ public class Train extends ViewableAtomic {
         // and unloading passengers.  The time should
         // be given in minutes
         _loadingTimeDistribution = loadingTimeDistribution;
+
+        // Delay time in transit (minutes)
+        _delayTimeDistribution = delayTimeDistribution;
+        _delayProbability = delayProbability;
 
         initialize();
 
@@ -77,19 +86,22 @@ public class Train extends ViewableAtomic {
     }
 
     public Train(String name) {
-        this(name, UUID.randomUUID(), new PassengerList(), new UniformRandom(15.0/60.0, 15.0/60.0));
+        this(name, UUID.randomUUID(), new PassengerList(), new UniformRandom(15.0/60.0, 15.0/60.0),
+                0.0, new UniformRandom(0.0, 0.0));
     }
     
-    public Train(String name, UniformRandom loadingTimeDistribution) {
+    public Train(String name, UniformRandom loadingTimeDistribution,
+                 double delayProbability, UniformRandom delayTimeDistribution) {
         // All trains must have a unique name for UUID generation to work
-    	this(name, UUID.randomUUID(),new PassengerList(), loadingTimeDistribution);
+    	this(name, UUID.randomUUID(),new PassengerList(), loadingTimeDistribution,
+                delayProbability, delayTimeDistribution);
     }
 
     public Train(UUID id) {
         this("Train", id, new PassengerList() {{
             add(new Passenger(UUID.randomUUID(), id));
             add(new Passenger(UUID.randomUUID(), id));
-        }}, new UniformRandom(15.0/60.0, 15.0/60.0));
+        }}, new UniformRandom(15.0/60.0, 15.0/60.0), 0.0, new UniformRandom(0.0, 0.0));
     }
 
     public Train() {
@@ -155,6 +167,7 @@ public class Train extends ViewableAtomic {
         switch (phase) {
             case IN_TRANSIT:
                 holdIn(REQUEST_MOVE_TO_STATION, 0);
+                _delayTime = 0;
                 break;
             case REQUEST_MOVE_TO_STATION:
             	// Reset the wait time
@@ -222,7 +235,11 @@ public class Train extends ViewableAtomic {
             	// Update the wait time
             	_waitTime += e;
                 Optional<Double> sectionGoAhead = getMoveToSectionResponse(x);
-                sectionGoAhead.ifPresent(time -> holdIn(IN_TRANSIT, time));
+                sectionGoAhead.ifPresent(time -> {
+                    _delayTime = _delayTimeDistribution.nextDouble() > _delayProbability ? 0.0 :
+                            _delayTimeDistribution.draw();
+                    holdIn(IN_TRANSIT, time + _delayTime);
+                });
                 break;
         }
     }
@@ -251,6 +268,9 @@ public class Train extends ViewableAtomic {
                 break;
             case IN_TRANSIT:
             	// Output the wait time for going from station to track
+                if (_delayTime > 0) {
+                    m.add(makeContent(OUT_DELAY_TIME_PORT, new doubleEnt(_delayTime)));
+                }
             	m.add(makeContent(OUT_WAIT_TIME_PORT,new doubleEnt(_waitTime)));
             	break;
         }

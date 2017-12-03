@@ -44,7 +44,9 @@ public class SimplExpFrame extends BaseExpFrame {
             $.trainPositions = new ArrayList<>(Arrays.asList(1));
             $.loadingTimeDistribution = new UniformRandom(15.0/60.0, 15.0/60.0);
 
-            $.breakdownGenerator = Optional.empty();
+            $.delayTimeDistribution = new UniformRandom(0.0, 0.0);
+            $.delayProbability = 0.0;
+            $.random = new Random();
         }).createSubwaySystemLoop();
 
         addSubwaySystemLoop(ssl);

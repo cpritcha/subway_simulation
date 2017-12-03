@@ -22,7 +22,8 @@ public class SubwaySystemLoopConfig {
         public ArrayList<String> trainNames;
         public ArrayList<Integer> trainPositions;
         public UniformRandom loadingTimeDistribution;
-        public Optional<CoupledBreakdownGenerator> breakdownGenerator;
+        public UniformRandom delayTimeDistribution;
+        public double delayProbability;
         public Random random;
 
         public Builder with(
@@ -34,21 +35,21 @@ public class SubwaySystemLoopConfig {
         public SubwaySystemLoopConfig createSubwaySystemLoop() {
             return new SubwaySystemLoopConfig(loopName, trackLengths, stationData,
                     trainGroupName, trainNames, trainPositions, loadingTimeDistribution,
-                    breakdownGenerator, random);
+                    delayProbability, delayTimeDistribution, random);
         }
     }
 
     public SubwaySystemLoopConfig(String loopName, List<Integer> trackLengths, Object[][] stationData,
                                   String trainGroupName, ArrayList<String> trainNames, ArrayList<Integer> initialPositions,
-                                  UniformRandom loadingTimeDistribution,
-                                  Optional<CoupledBreakdownGenerator> cbg, Random random) {
+                                  UniformRandom loadingTimeDistribution, double delayProbability,
+                                  UniformRandom delayTimeDistribution, Random random) {
         ArrayList<TrackSection> trackSections = TrackSection.createTracks(trackLengths);
         ArrayList<Station> stations = Station.Builder.fromData(stationData, random).stream()
                 .map(Station.Builder::createStation)
                 .collect(Collectors.toCollection(ArrayList::new));
         loopLayout = new SubwayLoop(loopName, trackSections, stations);
-        trainGroup = new TrainGroup(trainGroupName, trainNames, loadingTimeDistribution);
-        cbg.ifPresent(g -> trainGroup.addBreakdowns(g));
+        trainGroup = new TrainGroup(trainGroupName, trainNames, loadingTimeDistribution,
+                delayProbability, delayTimeDistribution);
         this.initialPositions = initialPositions;
     }
 }

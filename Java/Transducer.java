@@ -3,8 +3,6 @@ package Subway;
 import GenCol.*;
 import model.modeling.*;
 import view.modeling.ViewableAtomic;
-import java.util.HashMap;
-import java.util.Map;
 
 public class Transducer extends ViewableAtomic {
 
@@ -12,11 +10,15 @@ public class Transducer extends ViewableAtomic {
 	protected double clock;
 	protected double total_ta;
 	private int totalPassengersDelivered;
-	private int totalDelayTime;
-	private int delayTimeCount;
-	private int nonzeroDelayTimeCount;
-	
+	private int totalLoadUnloadDelayTime;
+	private int delayLoadUnloadTimeCount;
+	private int nonzeroLoadUnloadDelayTimeCount;
+
+	private double totalTransitDelayTime;
+	private int delayTransitTimeCount;
+
 	protected static final String OUT_STOP = "Stop";
+
 
 	public Transducer() {
 		this("Transducer", 120);
@@ -45,9 +47,14 @@ public class Transducer extends ViewableAtomic {
 		clock = 0;
 		total_ta = 0;
 		totalPassengersDelivered = 0;
-		totalDelayTime = 0;
-		delayTimeCount = 0;
-		nonzeroDelayTimeCount = 0;
+
+		totalLoadUnloadDelayTime = 0;
+		delayLoadUnloadTimeCount = 0;
+		nonzeroLoadUnloadDelayTimeCount = 0;
+
+		totalTransitDelayTime = 0;
+		delayTransitTimeCount = 0;
+
 		super.initialize();
 	}
 
@@ -67,11 +74,17 @@ public class Transducer extends ViewableAtomic {
 				// Get the entity
 				doubleEnt delayEnt = (doubleEnt)x.getValOnPort(Train.OUT_WAIT_TIME_PORT, k);
 				double delay = delayEnt.getv();
-				totalDelayTime += delay;
-				delayTimeCount += 1;
+				totalLoadUnloadDelayTime += delay;
+				delayLoadUnloadTimeCount += 1;
 				if (delay>0) {
-					nonzeroDelayTimeCount += 1;
+					nonzeroLoadUnloadDelayTimeCount += 1;
 				}
+			}
+			if (messageOnPort(x,Train.OUT_DELAY_TIME_PORT,k)) {
+				doubleEnt delayEnt = (doubleEnt)x.getValOnPort(Train.OUT_DELAY_TIME_PORT, k);
+				double delay = delayEnt.getv();
+				totalTransitDelayTime += delay;
+				delayTransitTimeCount += 1;
 			}
 		}
 	}
@@ -94,8 +107,10 @@ public class Transducer extends ViewableAtomic {
 		System.out.println("State of " + name + ": ");
 		System.out.println("phase, sigma: " + phase + ", " + sigma + " ");
 		System.out.println("Total Passengers Carried: "+totalPassengersDelivered);
-		System.out.println("Total Accumulated Delay Time: "+totalDelayTime+" minutes");
-		System.out.println("Overall Average Delay Time: "+totalDelayTime/(double)delayTimeCount);
-		System.out.println("Average Non-zero Delay Time: "+totalDelayTime/(double)nonzeroDelayTimeCount);
+		System.out.println("Total Accumulated Loading and Unloading Delay Time: "+ totalLoadUnloadDelayTime +" minutes");
+		System.out.println("Overall Average Loading and Unloading Delay Time: "+ totalLoadUnloadDelayTime /(double) delayLoadUnloadTimeCount);
+		System.out.println("Average Loading and Unloading Non-zero Delay Time: "+ totalLoadUnloadDelayTime /(double) nonzeroLoadUnloadDelayTimeCount);
+		System.out.println(String.format("Total Accumulated Transit Delay Time: %.4f minutes", totalTransitDelayTime));
+		System.out.println(String.format("Average Transit Delay Time: %.4f minutes", totalTransitDelayTime /(double) delayTransitTimeCount));
 	}
 }

@@ -10,9 +10,10 @@ public class ExpFrame4TrainsNoDelays extends BaseExpFrame {
 
         SubwaySystemLoopConfig config = createScarboroughLoop(4)
                 .with($ -> {
-                    $.random = new Random(1000);
+                    $.random = new Random();
                     $.loadingTimeDistribution = new UniformRandom($.random, 15.0/60.0, 195.0/60.0);
-                    $.breakdownGenerator = Optional.empty();
+                    $.delayTimeDistribution = new UniformRandom($.random, 0.0, 0.0);
+                    $.delayProbability = 0.0;
                 }).createSubwaySystemLoop();
         addSubwaySystemLoop(config);
     }

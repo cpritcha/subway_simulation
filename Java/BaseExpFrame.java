@@ -36,6 +36,7 @@ public class BaseExpFrame extends ViewableDigraph{
         // Couple the scheduler to the transducer
         addCoupling(scheduler, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, _transducer, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
         addCoupling(trainGroup, Train.OUT_WAIT_TIME_PORT, _transducer, Train.OUT_WAIT_TIME_PORT);
+        addCoupling(trainGroup, Train.OUT_DELAY_TIME_PORT, _transducer, Train.OUT_DELAY_TIME_PORT);
         
         // Couple the transducer to the train group
         addCoupling(_transducer, Transducer.OUT_STOP, trainGroup, Train.IN_STOP);

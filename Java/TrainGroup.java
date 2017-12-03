@@ -11,13 +11,14 @@ public class TrainGroup extends ViewableDigraph {
 
     protected ArrayList<Train> trains;
 
-    public TrainGroup(String name, ArrayList<String> TrainNames, UniformRandom loadingTimeDistribution) {
+    public TrainGroup(String name, ArrayList<String> TrainNames, UniformRandom loadingTimeDistribution,
+                      double delayProbability, UniformRandom delayTimeDistribution) {
         super(name);
 
         // Instantiate each of the train names
         trains = new ArrayList<Train>(TrainNames.size());
         for (String tname : TrainNames) {
-            trains.add(new Train(tname, loadingTimeDistribution));
+            trains.add(new Train(tname, loadingTimeDistribution, delayProbability, delayTimeDistribution));
         }
 
         // Add the inports
@@ -48,18 +49,10 @@ public class TrainGroup extends ViewableDigraph {
             addCoupling(train, Train.OUT_REQUEST_MOVE_TO_STATION_PORT, this, Train.OUT_REQUEST_MOVE_TO_STATION_PORT);
             addCoupling(train, Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT, this, Train.OUT_REQUEST_MOVE_TO_TRACK_SECTION_PORT);
             addCoupling(train, Train.OUT_WAIT_TIME_PORT,this,Train.OUT_WAIT_TIME_PORT);
+            addCoupling(train, Train.OUT_DELAY_TIME_PORT, this, Train.OUT_DELAY_TIME_PORT);
         }
 
         initialize();
-    }
-
-    public void addBreakdowns(CoupledBreakdownGenerator cbg) {
-        add(cbg);
-        for (Train train: trains) {
-            String outBreakdownPortName = cbg.register(train);
-            addCoupling(cbg, outBreakdownPortName, train, Train.IN_BREAKDOWN_PORT);
-        }
-        cbg.initialize();
     }
 
     public Train get(int index) {
