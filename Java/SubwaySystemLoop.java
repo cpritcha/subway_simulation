@@ -1,7 +1,5 @@
 package Subway;
 
-import model.modeling.Coupled;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -24,7 +22,7 @@ public class SubwaySystemLoop {
         public ArrayList<Integer> trainPositions;
         public double minLoadTime;
         public double maxLoadDisturbanceTime;
-        public Optional<CoupledBreakdownGenerator> cbg;
+        public Optional<CoupledBreakdownGenerator> breakdownGenerator;
 
         public Builder with(
                 Consumer<Builder> builderFunction) {
@@ -35,7 +33,7 @@ public class SubwaySystemLoop {
         public SubwaySystemLoop createSubwaySystemLoop() {
             return new SubwaySystemLoop(loopName, trackLengths, stationData,
                     trainGroupName, trainNames, trainPositions, minLoadTime, maxLoadDisturbanceTime,
-                    cbg);
+                    breakdownGenerator);
         }
     }
 

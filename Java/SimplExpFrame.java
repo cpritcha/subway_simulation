@@ -5,7 +5,6 @@ import view.modeling.ViewableComponent;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SimplExpFrame extends BaseExpFrame {
 
@@ -48,7 +47,7 @@ public class SimplExpFrame extends BaseExpFrame {
             $.minLoadTime = 15.0 / 60.0; // Minimum load time in minutes
             $.maxLoadDisturbanceTime = 0.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
 
-            $.cbg = Optional.empty();
+            $.breakdownGenerator = Optional.empty();
         }).createSubwaySystemLoop();
 
         addSubwaySystemLoop(ssl);
