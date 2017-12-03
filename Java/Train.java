@@ -22,6 +22,7 @@ public class Train extends ViewableAtomic {
     public static final String OUT_PASSENGER_UNLOAD_PORT = "outPassengerUnload";
     public static final String IN_BREAKDOWN_PORT = "inBreakdown";
     public static final String OUT_WAIT_TIME_PORT = "outWaitTime";
+    public static final String IN_STOP = "Stop";
 
     // Possible phases
     private static final String REQUEST_MOVE_TO_STATION = "request move to station";
@@ -69,6 +70,7 @@ public class Train extends ViewableAtomic {
         addOutport(OUT_PASSENGER_UNLOAD_PORT);
         
         addInport(IN_BREAKDOWN_PORT);
+        addInport(IN_STOP);
 
         if (passengers.size() > 0) {
             addTestInput(IN_MOVE_TO_STATION_PORT, new KeyValueEntity<>(getID(), passengers.get(0).getDestination()));
@@ -176,6 +178,14 @@ public class Train extends ViewableAtomic {
 
     public void deltext(double e, message x) {
     	Continue(e);
+    	// First check for a stop signal
+    	for (int k = 0; k < x.size(); k++) {
+    		if (messageOnPort(x,IN_STOP,k)) {
+    			passivate();
+    		}
+    	}
+    	
+    	// Else process accordingly
         switch (phase) {
             case IN_TRANSIT:
                 double breakdownTime = getBreakdown(x);

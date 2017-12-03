@@ -15,9 +15,11 @@ public class Transducer extends ViewableAtomic {
 	private int totalDelayTime;
 	private int delayTimeCount;
 	private int nonzeroDelayTimeCount;
+	
+	protected static final String OUT_STOP = "Stop";
 
 	public Transducer() {
-		this("Transducer", 500);
+		this("Transducer", 120);
 	}
 	
 	public Transducer(double ObservationTime) {
@@ -31,6 +33,9 @@ public class Transducer extends ViewableAtomic {
 		// Input ports
 		addInport(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
 		addInport(Train.OUT_WAIT_TIME_PORT);
+		
+		// Output ports
+		addOutport(OUT_STOP);
 		
 		initialize();
 	}
@@ -50,22 +55,22 @@ public class Transducer extends ViewableAtomic {
 		clock = clock + e;
 		Continue(e);
 		
-		if (phaseIs("passive")) {
-			for (int k = 0; k < x.size(); k++) {
-				if (messageOnPort(x,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT,k)) {
-					// Get the entity
-					intEnt nDelivered = (intEnt)x.getValOnPort(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, k);
-					totalPassengersDelivered += nDelivered.getv();
-				}
-				if (messageOnPort(x,Train.OUT_WAIT_TIME_PORT,k)) {
-					// Get the entity
-					doubleEnt delayEnt = (doubleEnt)x.getValOnPort(Train.OUT_WAIT_TIME_PORT, k);
-					double delay = delayEnt.getv();
-					totalDelayTime += delay;
-					delayTimeCount += 1;
-					if (delay>0) {
-						nonzeroDelayTimeCount += 1;
-					}
+		for (int k = 0; k < x.size(); k++) {
+			if (messageOnPort(x,Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT,k)) {
+				
+				// Get the entity
+				intEnt nDelivered = (intEnt)x.getValOnPort(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, k);
+				System.out.println("Passengers delivered: "+nDelivered.getv());
+				totalPassengersDelivered += nDelivered.getv();
+			}
+			if (messageOnPort(x,Train.OUT_WAIT_TIME_PORT,k)) {
+				// Get the entity
+				doubleEnt delayEnt = (doubleEnt)x.getValOnPort(Train.OUT_WAIT_TIME_PORT, k);
+				double delay = delayEnt.getv();
+				totalDelayTime += delay;
+				delayTimeCount += 1;
+				if (delay>0) {
+					nonzeroDelayTimeCount += 1;
 				}
 			}
 		}
@@ -79,7 +84,9 @@ public class Transducer extends ViewableAtomic {
 
 	public message out() {
 		message m = new message();
-
+		if (phaseIs("active")) {
+			m.add(makeContent("Stop", new entity("Stop")));
+		}
 		return m;
 	}
 

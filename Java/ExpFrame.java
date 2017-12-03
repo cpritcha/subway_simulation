@@ -40,7 +40,7 @@ public class ExpFrame extends BaseExpFrame {
             };
             $.trainGroupName = "Trains";
             $.minLoadTime = 15.0 / 60.0; // Minimum load time in minutes
-            $.maxLoadDisturbanceTime = 0.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
+            $.maxLoadDisturbanceTime = 180.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
             $.trainNames = new ArrayList<>(Arrays.asList("T1", "T2", "T3", "T4", "T5", "T6"));
             $.trainPositions = new ArrayList<>(Arrays.asList(1, 3, 5, 7, 9, 11));
 
