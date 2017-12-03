@@ -1,5 +1,7 @@
 package Subway;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -49,6 +51,10 @@ public class TrackSection extends ViewableAtomic implements IWithUUID {
 
     public TrackSection() {
         this(5, 1);
+    }
+
+    protected static ArrayList<TrackSection> createTracks(List<Integer> trackLengths) {
+        return trackLengths.stream().map(TrackSection::new).collect(Collectors.toCollection(ArrayList::new));
     }
 
     public UUID getID() {

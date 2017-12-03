@@ -12,61 +12,57 @@ public class SimplExpFrame extends BaseExpFrame {
     public SimplExpFrame() {
         super("Simple Experimental Frame");
 
-        // Define the track lengths from Kennedy to McCowan.
-        // The last element is the long segment from McCowan to Kennedy
-        ArrayList<Integer> trackLengths = new ArrayList<Integer>(Arrays.asList(3, 4));
-        System.out.println("trackLengths.size = " + trackLengths.size());
-        ArrayList<TrackSection> tracks = createTracks(trackLengths);
+        SubwaySystemLoop ssl = new SubwaySystemLoop.Builder().with($ -> {
+            $.loopName = "Scarborough East";
+            // Define the track lengths from Kennedy to McCowan.
+            // The last element is the long segment from McCowan to Kennedy
+            $.trackLengths = new ArrayList<>(Arrays.asList(3, 4));
+            System.out.println("trackLengths.size = " + $.trackLengths.size());
 
-        // Found typical business day ridership here:
-        // https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
-        //
-        // To compute rates below, take values from spreadsheet, divide riders over
-        // 12 hours and then divide by 2 (since we have one 'station' per direction
-        // for each stop)
+            // Found typical business day ridership here:
+            // https://www1.toronto.ca/wps/portal/contentonly?vgnextoid=c077c316f16e8410VgnVCM10000071d60f89RCRD
+            //
+            // To compute rates below, take values from spreadsheet, divide riders over
+            // 12 hours and then divide by 2 (since we have one 'station' per direction
+            // for each stop)
 
-        Object[][] stationData = {
-                // Station Name, Passenger Creation Rate
-                {"Kennedy", 13 /* 17,969 */},
-                {"Lawrence East", 3 /* 4,326 */},
-        };
+            Object[][] stationSetupData = {
+                    // Station Name, Passenger Creation Rate
+                    {"Kennedy", 13 /* 17,969 */},
+                    {"Lawrence East", 3 /* 4,326 */},
+            };
+            $.stationData = stationSetupData;
 
-        ArrayList<Station.Builder> stationBuilders = Station.Builder.fromData(stationData);
 
-        ArrayList<Station> stations = stationBuilders.stream()
-                .map(Station.Builder::createStation)
-                .collect(Collectors.toCollection(ArrayList::new));
+            // Trains
+            // Note: According to the wikipedia Line 3 pages, 6 four-car trains operate
+            // on the route, though it is reduced to 5 for construction until 2018.
+            // From here: https://en.wikipedia.org/wiki/S-series_(Toronto_subway) the
+            // train capacity is 30 seated, 55 standing
+            //
+            // Add three trains for each direction
 
-        // Create an array of loops for passing to the scheduler
-        SubwayLoop eastLoop = new SubwayLoop("Scarborough East", tracks, stations);
-        ArrayList<SubwayLoop> loops = new ArrayList<>();
-        loops.add(eastLoop);
+            $.trainGroupName = "East Trains";
+            $.trainNames = new ArrayList<>(Arrays.asList("ET1"));
+            $.trainPositions = new ArrayList<>(Arrays.asList(1));
+            $.minLoadTime = 15.0 / 60.0; // Minimum load time in minutes
+            $.maxLoadDisturbanceTime = 0.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
 
-        // Trains
-        // Note: According to the wikipedia Line 3 pages, 6 four-car trains operate
-        // on the route, though it is reduced to 5 for construction until 2018.
-        // From here: https://en.wikipedia.org/wiki/S-series_(Toronto_subway) the
-        // train capacity is 30 seated, 55 standing
-        //
-        // Add three trains for each direction
-        ArrayList<String> eastTrainNames = new ArrayList<String>(Arrays.asList("ET1"));
+            $.cbg = Optional.empty();
+        }).createSubwaySystemLoop();
 
-        // Put the trains into groups
-        double minLoadTime = 15.0 / 60.0; // Minimum load time in minutes
-        double maxLoadDisturbanceTime = 0.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
-        TrainGroup eastTrainGroup = new TrainGroup("East Trains", eastTrainNames, minLoadTime, maxLoadDisturbanceTime);
+        addSubwaySystemLoop(ssl);
+    }
 
-        // Add all the train groups into a list
-        ArrayList<TrainGroup> trainGroups = new ArrayList<TrainGroup>();
-        trainGroups.add(eastTrainGroup);
-
-        // Specify the train starting positions
-        ArrayList<Integer> eastTrainPositions = new ArrayList<Integer>(Arrays.asList(1));
-
-        // Create an array of train starting positions for passing to the scheduler
-        ArrayList<ArrayList<Integer>> initialTrainPositions = new ArrayList<>();
-        initialTrainPositions.add(eastTrainPositions);
-
-        setupExpFrame(loops, trainGroups, initialTrainPositions);
+    /**
+     * Automatically generated by the SimView program.
+     * Do not edit this manually, as such changes will get overwritten.
+     */
+    public void layoutForSimView() {
+        preferredSize = new Dimension(1100, 581);
+        ((ViewableComponent) withName("Transducer")).setPreferredLocation(new Point(50, 50));
+        ((ViewableComponent) withName("East Trains")).setPreferredLocation(new Point(593, 9));
+        ((ViewableComponent) withName("Scheduler_ScarboroughEast")).setPreferredLocation(new Point(40, 109));
+        ((ViewableComponent) withName("Scarborough East")).setPreferredLocation(new Point(0, 238));
     }
 }

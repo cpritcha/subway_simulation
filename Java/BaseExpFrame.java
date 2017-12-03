@@ -11,50 +11,35 @@ import java.util.stream.Collectors;
 public class BaseExpFrame extends ViewableDigraph{
     /* Common exp frame setup code for all classes goes here */
 
+    protected Transducer _transducer;
+
     public BaseExpFrame(String name) {
         super(name);
+        _transducer = new Transducer();
+        add(_transducer);
     }
 
-    public void setupExpFrame(List<SubwayLoop> loops, List<TrainGroup> trainGroups, List<ArrayList<Integer>> initialTrainPositions) {
-        // For each of the train groups and Subway Loops, create scheduler
-        TrainGroup currentTrainGroup;
-        Scheduler currentScheduler;
-        SubwayLoop currentLoop;
-        ArrayList<Integer> currentInitialPositions;
+    public void addLoop(SubwayLoop currentLoop, TrainGroup currentTrainGroup, ArrayList<Integer> currentInitialPositions) {
+        Scheduler currentScheduler = new Scheduler("Scheduler_" + currentLoop.getName().replaceAll(" ", ""), currentLoop, currentTrainGroup, currentInitialPositions);
 
-        // Add the transducer
-        ViewableAtomic transducer = new Transducer();
-        add(transducer);
+        // Add the objects to the experimental frame
+        add(currentLoop);
+        add(currentTrainGroup);
+        add(currentScheduler);
 
-        ArrayList<Scheduler> schedulers = new ArrayList<Scheduler>();
-        for (int k = 0; k < loops.size(); k++) {
-            currentLoop = loops.get(k);
-            currentTrainGroup = trainGroups.get(k);
-            currentInitialPositions = initialTrainPositions.get(k);
-            currentScheduler = new Scheduler("Scheduler_" + currentLoop.getName().replaceAll(" ", ""), currentLoop, currentTrainGroup, currentInitialPositions);
-            schedulers.add(currentScheduler);
+        // Connect the train group to the scheduler
+        coupleTrainGroupAndScheduler(currentTrainGroup, currentScheduler);
 
-            // Add the objects to the experimental frame
-            add(currentLoop);
-            add(currentTrainGroup);
-            add(currentScheduler);
+        // Connect the scheduler to the station group
+        coupleSchedulerAndLoop(currentLoop, currentScheduler);
 
-            // Connect the train group to the scheduler
-            coupleTrainGroupAndScheduler(currentTrainGroup, currentScheduler);
-
-            // Connect the scheduler to the station group
-            coupleSchedulerAndLoop(currentLoop, currentScheduler);
-
-            // Couple the scheduler to the transducer
-            addCoupling(currentScheduler, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, transducer, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
-            addCoupling(currentTrainGroup, Train.OUT_WAIT_TIME_PORT, transducer, Train.OUT_WAIT_TIME_PORT);
-        }
-
-        initialize();
+        // Couple the scheduler to the transducer
+        addCoupling(currentScheduler, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT, _transducer, Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
+        addCoupling(currentTrainGroup, Train.OUT_WAIT_TIME_PORT, _transducer, Train.OUT_WAIT_TIME_PORT);
     }
 
-    protected ArrayList<TrackSection> createTracks(List<Integer> trackLengths) {
-        return trackLengths.stream().map(TrackSection::new).collect(Collectors.toCollection(ArrayList::new));
+    public void addSubwaySystemLoop(SubwaySystemLoop subwaySystemLoop) {
+        addLoop(subwaySystemLoop.loop, subwaySystemLoop.trainGroup, subwaySystemLoop.initialPositions);
     }
 
     protected void coupleTrainGroupAndScheduler(TrainGroup currentTrainGroup, Scheduler currentScheduler) {
