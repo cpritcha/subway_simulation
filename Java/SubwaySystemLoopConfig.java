@@ -44,8 +44,9 @@ public class SubwaySystemLoopConfig {
         ArrayList<Station> stations = Station.Builder.fromData(stationData).stream()
                 .map(Station.Builder::createStation)
                 .collect(Collectors.toCollection(ArrayList::new));
+        UniformRandom loadingsTimeDistribution = new UniformRandom(minLoadTime, minLoadTime);
         loopLayout = new SubwayLoop(loopName, trackSections, stations);
-        trainGroup = new TrainGroup(trainGroupName, trainNames, minLoadTime, maxLoadDisturbanceTime);
+        trainGroup = new TrainGroup(trainGroupName, trainNames, loadingsTimeDistribution);
         cbg.ifPresent(g -> trainGroup.addBreakdowns(g));
         this.initialPositions = initialPositions;
     }

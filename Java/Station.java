@@ -147,7 +147,9 @@ public class Station extends ViewableAtomic {
 						// and generate some new _passengers first
 						int deltaTime = (int)Math.round(clock - timeOfLastPassengerCreation);
 						passengers.addAll(passengerFactory(deltaTime* _passengerCreationRate));
-						
+						System.out.println(String.format("# of Passengers Waiting at Station %s: %d",
+                                getName(), passengers.size()));
+
 						// Figure out how many _passengers we can provide
 						int numPassengers = Math.min(passengers.size(), currentTrainCapacity);
 						
@@ -236,6 +238,8 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("Boarding Passengers")) {
 			// Pass the passengers as a bag of inputs
 			PassengerList boardingPassengers = passengersToBoard.copy();
+			System.out.println(String.format("# of Passengers Boarding at Station %s: %d",
+                    getName(), boardingPassengers.size()));
 			m.add(makeContent(Train.IN_PASSENGER_LOAD_PORT, new KeyValueEntity<>(getID(), boardingPassengers)));
 			
 			// Passengers have been passed along, so we can clear the list
