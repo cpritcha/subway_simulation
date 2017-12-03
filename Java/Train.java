@@ -7,8 +7,6 @@ import java.util.stream.Stream;
 
 import GenCol.doubleEnt;
 
-import java.util.Random;
-
 import model.modeling.content;
 import model.modeling.message;
 import view.modeling.ViewableAtomic;
@@ -40,12 +38,11 @@ public class Train extends ViewableAtomic {
     private PassengerList _unloadingPassengers;
 
     private PassengerList _initialPassengers;
-    
-    private double _minimumLoadTime;
-    private double _maxLoadDisturbanceTime;
+
+    private UniformRandom _loadingTimeDistribution;
     private double _waitTime;
 
-    public Train(String name, UUID id, PassengerList passengers, double minimumLoadTime, double maxLoadDisturbanceTime) {
+    public Train(String name, UUID id, PassengerList passengers, UniformRandom loadingTimeDistribution) {
         super(name);
         _id = id;
         _initialPassengers = passengers;
@@ -55,8 +52,7 @@ public class Train extends ViewableAtomic {
         // These are the delay times for loading
         // and unloading passengers.  The time should
         // be given in minutes
-        _minimumLoadTime = minimumLoadTime;
-        _maxLoadDisturbanceTime = maxLoadDisturbanceTime;
+        _loadingTimeDistribution = loadingTimeDistribution;
 
         initialize();
 
@@ -81,18 +77,19 @@ public class Train extends ViewableAtomic {
     }
 
     public Train(String name) {
-        this(name, UUID.randomUUID(), new PassengerList(),15.0/60.0,0.0);
+        this(name, UUID.randomUUID(), new PassengerList(), new UniformRandom(15.0/60.0, 15.0/60.0));
     }
     
-    public Train(String name, double minLoadTime, double maxLoadDisturbanceTime) {
-    	this(name, UUID.randomUUID(),new PassengerList(), minLoadTime, maxLoadDisturbanceTime);
+    public Train(String name, UniformRandom loadingTimeDistribution) {
+        // All trains must have a unique name for UUID generation to work
+    	this(name, UUID.randomUUID(),new PassengerList(), loadingTimeDistribution);
     }
 
     public Train(UUID id) {
         this("Train", id, new PassengerList() {{
             add(new Passenger(UUID.randomUUID(), id));
             add(new Passenger(UUID.randomUUID(), id));
-        }},15.0/60.0,0.0);
+        }}, new UniformRandom(15.0/60.0, 15.0/60.0));
     }
 
     public Train() {
@@ -203,15 +200,13 @@ public class Train extends ViewableAtomic {
                     _passengers.removeIf(p -> p.getDestination().equals(id));
                     
                     // Compute the time required to unload passengers
-                    Random random = new Random();
-                    double unloadTime = _minimumLoadTime + random.nextDouble()*_maxLoadDisturbanceTime;
+                    double unloadTime = _loadingTimeDistribution.draw();
                     holdIn(BEGIN_LOAD_UNLOAD, unloadTime);
                 }
                 break;
             case AT_STATION:
             	// Compute the time required to load passengers
-                Random random = new Random();
-                double loadTime = _minimumLoadTime + random.nextDouble()*_maxLoadDisturbanceTime;
+                double loadTime = _loadingTimeDistribution.draw();
             	
                 Optional<PassengerList> loadingPassengers = getPassengerLoad(x);
                 loadingPassengers.ifPresent(lps -> {

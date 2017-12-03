@@ -11,13 +11,13 @@ public class TrainGroup extends ViewableDigraph {
 
     protected ArrayList<Train> trains;
 
-    public TrainGroup(String name, ArrayList<String> TrainNames, double minLoadTime, double maxLoadDisturbanceTime) {
+    public TrainGroup(String name, ArrayList<String> TrainNames, UniformRandom loadingTimeDistribution) {
         super(name);
 
         // Instantiate each of the train names
         trains = new ArrayList<Train>(TrainNames.size());
         for (String tname : TrainNames) {
-            trains.add(new Train(tname,minLoadTime,maxLoadDisturbanceTime));
+            trains.add(new Train(tname, loadingTimeDistribution));
         }
 
         // Add the inports

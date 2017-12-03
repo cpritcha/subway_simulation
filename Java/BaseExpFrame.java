@@ -1,8 +1,12 @@
 package Subway;
 
+import org.eclipse.swt.internal.C;
 import view.modeling.ViewableDigraph;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Optional;
+import java.util.Random;
 
 public class BaseExpFrame extends ViewableDigraph{
     /* Common exp frame setup code for all classes goes here */
@@ -60,5 +64,43 @@ public class BaseExpFrame extends ViewableDigraph{
         addCoupling(scheduler, TrackSection.IN_RELEASE_PORT, loopLayout, TrackSection.IN_RELEASE_PORT);
         addCoupling(loopLayout, TrackSection.OUT_ACQUIRE_PORT, scheduler, TrackSection.OUT_ACQUIRE_PORT);
         addCoupling(loopLayout, TrackSection.OUT_RELEASE_PORT, scheduler, TrackSection.OUT_RELEASE_PORT);
+    }
+
+    public SubwaySystemLoopConfig.Builder createScarboroughLoop(int nTrains) {
+
+        ArrayList<String> trainNames = new ArrayList<>();
+        ArrayList<Integer> trainPositions = new ArrayList<>();
+        for (int i = 0; i < nTrains; i++) {
+            trainNames.add(String.format("T%d", i));
+            trainPositions.add(2 * i + 1);
+        }
+
+        return new SubwaySystemLoopConfig.Builder().with($ -> {
+            $.loopName = "Scarborough";
+            $.trackLengths = new ArrayList<>(Arrays.asList(
+                    // Kennedy (East) to McCowan (East) (includes track section from Kennedy (West) to Kennedy (East)
+                    3, 2, 1, 1, 1, 1,
+                    // McCowan (West) to Kennedy (West)
+                    1, 1, 1, 2, 3, 1
+            ));
+            $.stationData = new Object[][]{
+                    // Station Name, Passenger Creation Rate
+                    {"Kennedy (East)", 13 /* 17,969 */},
+                    {"Lawrence East (East)", 3 /* 4,326 */},
+                    {"Ellesmere (East)", 1 /* 864 */},
+                    {"Midland (East)", 1 /* 1,358 */},
+                    {"Scarborough Centre (East)", 8 /* 10,979 */},
+                    {"McCowan (East)", 0},
+                    {"McCowan (West)", 2 /* 2,857 */},
+                    {"Scarborough Centre (West)" , 8},
+                    {"Midland (West)", 1},
+                    {"Ellesmere (West)", 1},
+                    {"Lawrence East (West)", 3},
+                    {"Kennedy (West)", 0}
+            };
+            $.trainGroupName = "Trains";
+            $.trainNames = trainNames;
+            $.trainPositions = trainPositions;
+        });
     }
 }

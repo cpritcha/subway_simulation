@@ -58,6 +58,7 @@ public class Station extends ViewableAtomic {
 		public int passengerCreationRate;
 		public int initialPassengerCount;
 		public ArrayList<UUID> destinations;
+		public Random random;
 
 		public Builder with(
 				Consumer<Builder> builderFunction) {
@@ -65,7 +66,7 @@ public class Station extends ViewableAtomic {
 			return this;
 		}
 
-		public static ArrayList<Builder> fromData(Object[][] data) {
+		public static ArrayList<Builder> fromData(Object[][] data, Random random) {
 			// Assume each row of data has a Station Name (String) and a Passenger Creation Rate (int) in that order
 			ArrayList<Station.Builder> stationBuilders = Arrays.stream(data)
 					.map(row -> new Station.Builder().with($ -> {
@@ -73,6 +74,7 @@ public class Station extends ViewableAtomic {
 						$.name = (String) row[0];
 						$.initialPassengerCount = 10;
 						$.passengerCreationRate = (int) row[1];
+						$.random = random;
 					})).collect(Collectors.toCollection(ArrayList::new));
 
 			ArrayList<UUID> destinations = stationBuilders.stream().map(sb -> sb.id)

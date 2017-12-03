@@ -42,13 +42,13 @@ public class SimplExpFrame extends BaseExpFrame {
             $.trainGroupName = "East Trains";
             $.trainNames = new ArrayList<>(Arrays.asList("ET1"));
             $.trainPositions = new ArrayList<>(Arrays.asList(1));
-            $.minLoadTime = 15.0 / 60.0; // Minimum load time in minutes
-            $.maxLoadDisturbanceTime = 0.0 / 60.0; // Maximum additional load time in minutes (random uniform distribution)
+            $.loadingTimeDistribution = new UniformRandom(15.0/60.0, 15.0/60.0);
 
             $.breakdownGenerator = Optional.empty();
         }).createSubwaySystemLoop();
 
         addSubwaySystemLoop(ssl);
+        initialize();
     }
 
     /**
