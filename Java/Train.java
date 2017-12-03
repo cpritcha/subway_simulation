@@ -186,6 +186,9 @@ public class Train extends ViewableAtomic {
         switch (phase) {
             case IN_TRANSIT:
                 double breakdownTime = getBreakdown(x);
+                if (breakdownTime > 0) {
+                    System.out.println(String.format("Train %s delayed: %.2f minutes", getName(), breakdownTime));
+                }
                 sigma = sigma - e + breakdownTime;
                 break;
             case AWAITING_STATION_GO_AHEAD:
