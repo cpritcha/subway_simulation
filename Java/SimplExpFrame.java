@@ -25,13 +25,11 @@ public class SimplExpFrame extends BaseExpFrame {
             // 12 hours and then divide by 2 (since we have one 'station' per direction
             // for each stop)
 
-            Object[][] stationSetupData = {
+            $.stationData = new Object[][]{
                     // Station Name, Passenger Creation Rate
                     {"Kennedy", 13 /* 17,969 */},
                     {"Lawrence East", 3 /* 4,326 */},
             };
-            $.stationData = stationSetupData;
-
 
             // Trains
             // Note: According to the wikipedia Line 3 pages, 6 four-car trains operate
