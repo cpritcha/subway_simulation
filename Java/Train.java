@@ -234,7 +234,7 @@ public class Train extends ViewableAtomic {
                 break;
             case BEGIN_LOAD_UNLOAD:
                 KeyValueEntity<PassengerUnloadRequest> pur = new KeyValueEntity<>(getID(), new PassengerUnloadRequest(
-                        PASSENGER_TOTAL_CAPACITY - _passengers.size(), _unloadingPassengers));
+                        PASSENGER_TOTAL_CAPACITY - _passengers.size(), (PassengerList)_unloadingPassengers.clone()));
                 pur.print();
                 m.add(makeContent(OUT_PASSENGER_UNLOAD_PORT, pur));
                 
