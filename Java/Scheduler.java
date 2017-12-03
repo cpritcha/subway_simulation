@@ -257,7 +257,12 @@ public class Scheduler extends ViewableAtomic {
 
 			// Write the time, the train, and the next position to the log
 			try {
-				logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, nextPosition));
+				if (nextPosition%2==0) {
+					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, nextPosition));
+				}
+				else {
+					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, trainPosition));
+				}
 				logWriter.flush();
 			} catch (IOException ex) {
 				ex.printStackTrace();
