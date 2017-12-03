@@ -11,7 +11,7 @@ public class SimplExpFrame extends BaseExpFrame {
     public SimplExpFrame() {
         super("Simple Experimental Frame");
 
-        SubwaySystemLoop ssl = new SubwaySystemLoop.Builder().with($ -> {
+        SubwaySystemLoopConfig ssl = new SubwaySystemLoopConfig.Builder().with($ -> {
             $.loopName = "Scarborough East";
             // Define the track lengths from Kennedy to McCowan.
             // The last element is the long segment from McCowan to Kennedy

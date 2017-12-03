@@ -2,7 +2,6 @@ package Subway;
 
 import GenCol.*;
 import view.modeling.ViewableAtomic;
-import model.modeling.content;
 import model.modeling.message;
 import java.util.HashMap;
 import java.util.PriorityQueue;
@@ -42,7 +41,7 @@ public class Scheduler extends ViewableAtomic {
 	// Use an internal clock
 	protected double clock;
 	
-	public Scheduler(String name,SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
+	public Scheduler(String name, SubwayLoop Loop, TrainGroup Trains, ArrayList<Integer> InitialTrainPositions) {
 		super(name);
 		
 		// Create a queue to store waiting trains
