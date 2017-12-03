@@ -1,6 +1,7 @@
 package Subway;
 
 import GenCol.*;
+import model.modeling.content;
 import view.modeling.ViewableAtomic;
 import model.modeling.message;
 import java.util.HashMap;
@@ -223,17 +224,19 @@ public class Scheduler extends ViewableAtomic {
 		System.out.println("Loop size: "+loop.size());
 		TrackSection nextTrack;
 		Station nextStation;
+
+		content outMessage;
 		if (mode.equals("toTrack")) {
 			nextTrack = (TrackSection)loop.get(nextPosition);
 			System.out.println("Next track: "+nextTrack.getName());
-			outMessages.add(makeContent(messagePort,new KeyValueEntity<Double>(trainID,
-					(double)nextTrack.getTravelTime())));
+			outMessage = makeContent(messagePort,new KeyValueEntity<Double>(trainID,
+					(double)nextTrack.getTravelTime()));
 		}
-		else if (mode.equals("toStation")) {
+		else { // toStation
 			nextStation = (Station)loop.get(nextPosition);
 			System.out.println("Next station: "+nextStation.getName());
-			outMessages.add(makeContent(messagePort,new KeyValueEntity<UUID>(trainID,
-					nextStation.getID())));
+			outMessage = makeContent(messagePort,new KeyValueEntity<UUID>(trainID,
+					nextStation.getID()));
 		}
 		
 		// Check if the next segment is populated
@@ -248,7 +251,10 @@ public class Scheduler extends ViewableAtomic {
 			// Locally increment the train position
 			trainPositions.put(trainID, nextPosition);
 			System.out.println("Next position: "+nextPosition);
-			
+
+			// Sent OK to move message
+			outMessages.add(outMessage);
+
 			// Write the time, the train, and the next position to the log
 			try {
 				logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, nextPosition));
