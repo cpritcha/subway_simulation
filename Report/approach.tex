@@ -11,23 +11,36 @@ The approach considered here consists of five atomic components coupled together
 \end{figure}
 %
 \subsection{Station Model}
-The station serves as the creation and destruction point for passengers.  The station is also the only location where trains may load or unload passengers. The station is responsible for maintaining a pool of waiting passengers.  If a train does not have enough capacity to board all waiting passengers, then those passengers persist at the station and wait for the next train.  The inputs to the station are a pool of new passengers, an available passenger capacity by the current train, and a set of passengers to unload from the arriving train.  The outputs are a request to the current train for its available capacity after unloading passengers and a set of passengers to load onto the train. For its states, the station may be simply waiting, adding new passengers to the pool, receiving passengers from the train or providing passengers to the train.  It must also have a state variable that holds the current passenger collection.
+The station serves as the creation and destruction point for passengers.  The station is also the only location where trains may load or unload passengers. The station is responsible for maintaining a pool of waiting passengers.  If a train does not have enough capacity to board all waiting passengers, then those passengers persist at the station and wait for the next train.  Also, if at any point a train must unload all of its passengers, in the event of an extended breakdown for example, any passengers not at their final destination will be added to the waiting passengers queue. In generating passengers, the station implements multiple options for generating destinations for each passenger.  In each of the destination options, the destinations are chosen from a predefined set of destinations that does not include the origin station.  One method for generating the destination is to loop through the possible destinations repeatedly, in order.  Another method is to specify a single destination for all passengers.  The third option is to generate a random destination.
+
+The inputs to the station are a set of passengers to unload from the arriving train and the available capacity of the arriving train.  Both of these values are contained within the same message on the input port.  This accomplished with a new derived \texttt{Entity} type.  The output is a set of passengers to load onto the train. For its states, the station may be simply waiting, unloading passengers from a train, or providing passengers to a train.  The station model must also have a state variable that holds the current waiting passenger collection. 
+
+After unloading passengers from a train, the station immediately updates its waiting passenger list.  The amount of passengers generated is specified by a rate.  The rate is given in units of passengers per minute.  When generating passengers, the total amount of passengers generated at that instant is the specified rate multiplied by a time.  The time used is the difference between the current internal clock value and the previous clock value at which passengers were created.  The internal clock and previous passenger generation time are both stored in state variables.  Once the created passengers are added to the waiting passengers list, the station takes up to as many passengers as the current train capacity from the front of the list adds them to a list of passengers to load on the train.  This list is then sent along with the unique station identifier as output.  The unique station identifier is used by the scheduler/coordinator to route the passengers to the correct train.  The scheduler is discussed in more detail in a later section. 
 \begin{align*}
 DEVS_{\textrm{Station}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
 P &= Passenger\ Collection, |P|\in\mathbb{N}_0^+ \\
-C &= \text{Passenger capacity of train} \\
-X &= \lbrace(\text{``Unload Passengers''},\lbrace u|u\in\mathbb{N}_0\rbrace), \\ & (\text{``Remaining Capacity''},\lbrace c|c\in\mathbb{N}_0\rbrace), \\ &(\text(``Add Passengers''),\lbrace P\rbrace\rbrace) \\
-Y &= \lbrace(\text{``Capacity Request''},()), \\ & (\text{``Load Passengers''},\lbrace p|p\in\mathbb{N}_0,p\leq C\rbrace\cup \emptyset)\rbrace \\
-S_{action} &= \lbrace\text{waiting, adding passengers}, \\ & \text{receiving passengers, providing passengers}\rbrace \\
-S_{passengers} &= \lbrace P, |P|\in\mathbb{N}_0^+\rbrace \\
-S &= S_{action}\times S_{passengers}\times \mathbb{R}_0^+ \\
-\delta_{ext}(\text{waiting},e,(\text{''Unload Passsengers''},\lbrace u|u\in\mathbb{N}_0\rbrace)) &= (\text{receiving passengers},\lbrace u\rbrace) \\
-\delta_{ext}(\text{waiting},e,(\text{``Remaining Capacity''},c)) &= (\text{providing passengers},p) \\
-\delta_{int}(\text{waiting}) &= \text{waiting} \\
-\delta_{int}(\text{waiting}) &= \text{adding passengers} \\
-\delta_{int}(\text{adding passengers},\sigma) &= \text{waiting} \\
-\lambda(\text{providing passengers}) &= (\text{``Load Passengers''},\lbrace p|p\in\mathbb{N}_0,p\leq C\rbrace) \\
-ta &= \sigma \\
+P_w &= \text{Waiting passenger list} \\
+P_l &= \text{List of passengers to load} \\
+C &= \text{Passenger capacity of current train} \\
+ID &= \text{Unique station identifier} \\
+X &= \lbrace(\text{``Unload Passengers''},\lbrace P, C|C\in\mathbb{N}_0\rbrace)\rbrace \\
+Y &= \lbrace(\text{``Load Passengers''},\lbrace P,|P|\leq C\rbrace\cup \emptyset)\rbrace \\
+S_{clock} &= \mathbb{R}_0^+ \\ 
+S_{timeOfLastPassengerCreation} &= \mathbb{R}_0^+ \\
+S_{action} &= \lbrace\text{``passive'', ``Unload Passengers'',} \\
+	& \text{``Load Passengers''}\rbrace \\
+S_{waitingPassengers} &= \lbrace P_w, |P_w|\in\mathbb{N}_0^+\rbrace \\
+S_{loadingPassengers} &= \lbrace P_l, |P_l|\leq C\rbrace \\ 
+S &= S_{action}\times S_{clock}\times \\
+ & S_{timeOfLastPassengerCreation}\times S_{waitingPassengers} \\
+ & S_{loadingPassengers}\times \mathbb{R}_0^+ \\
+\delta_{ext}(\text{``passive''},e,(\text{``Unload Passsengers''},\lbrace u|u\in\mathbb{N}_0\rbrace)) &= (\text{``Unload Passengers''},0,\lbrace P, C\rbrace) \\
+\delta_{int}(\text{``passive''}) &= \text{``passive''} \\
+\delta_{int}(\text{``Unload Passengers''},\sigma) &= (\text{``Load Passengers''},0,\lbrace ID, P\rbrace)\rbrace\ \\
+\delta_{int}(\text{``Load Passengers''},\sigma) &= (\text{``passive''}) \\
+\delta_{con}(s,ta(s),x) &= \delta_{ext}(\delta_{int}(s),0,x) \\
+\lambda(\text{``Load Passengers''}) &= \lbrace ID,\lbrace P, |P|\leq C\rbrace\cup\emptyset\rbrace \\
+ta &= 0 \\
 \end{align*}
 %
 \subsection{Track Section Model}
