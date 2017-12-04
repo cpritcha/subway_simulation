@@ -24,7 +24,7 @@ P_l &= \text{List of passengers to load} \\
 C &= \text{Passenger capacity of current train} \\
 ID &= \text{Unique station identifier} \\
 X &= \lbrace(\text{``Unload Passengers''},\lbrace P, C|C\in\mathbb{N}_0\rbrace)\rbrace \\
-Y &= \lbrace(\text{``Load Passengers''},\lbrace P,|P|\leq C\rbrace\cup \emptyset)\rbrace \\
+Y &= \lbrace(\text{``Load Passengers''},\lbrace P_l|\ |P_l|\leq C, P_l\subseteq P_w\rbrace\cup\emptyset)\rbrace \\
 S_{clock} &= \mathbb{R}_0^+ \\ 
 S_{timeOfLastPassengerCreation} &= \mathbb{R}_0^+ \\
 S_{action} &= \lbrace\text{``passive'', ``Unload Passengers'',} \\
@@ -40,7 +40,8 @@ S &= S_{action}\times S_{clock}\times \\
 \delta_{int}(\text{``Load Passengers''},\sigma) &= (\text{``passive''}) \\
 \delta_{con}(s,ta(s),x) &= \delta_{ext}(\delta_{int}(s),0,x) \\
 \lambda(\text{``Load Passengers''}) &= \lbrace ID,\lbrace P, |P|\leq C\rbrace\cup\emptyset\rbrace \\
-ta &= 0 \\
+ta(s) &= 0 \\
+ta(``passive'') &= \infty \\
 \end{align*}
 %
 \subsection{Track Section Model}
@@ -179,20 +180,51 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
 \subsection{Scheduler Model}
 A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set. The model remains in a perpetual state of waiting until it receives a move request from one of the trains.  It processes this request accordingly, responds, and then reverts back to a waiting state. The state consists of the two phases, waiting or moving trains, and state variables that store the input ID of the requesting train and its position.
 \begin{align*} DEVS_{\textrm{Scheduler}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
-T &= \# \text{ of trains} \\
-N &= \# \text{ of train stations} \\
-X &= \lbrace\OutMoveReq{(i,t)|i\in\mathbb{N}_0,i<N, t\in\mathbb{N}_0,t<T}\rbrace \\
-Y &= \lbrace\InMoveRes{(iset,tset)|iset\subseteq N, tset\subseteq T}\rbrace \cup\emptyset \\
-S_{action} &= \lbrace \text{waiting, moving trains}\rbrace \\
-S_{position} &= {i|i\in\mathbb{N}_0, i<N} \\
-S_{train} &= {t|t\in\mathbb{N}_0, t<T} \\
-S &= S_{action}\times S_{position}\times S_{train}\times\mathbb{R}_0^+ \\
-\delta_{ext}(\text{waiting},e,(\text{``Move Request''},i,t)) &= (\text{moving trains},i,t,\sigma) \\
-\delta_{int}(\text{moving trains},i,t,\sigma) &= \text{waiting} \\
-\delta_{int}(\text{waiting}) &= \text{waiting} \\
-\lambda(\text{moving trains},i,t,\sigma) &= (\text{``Move Response''},\lbrace Accepted, Rejected\rbrace\times iset\times tset\cup \emptyset)\\
-ta(\text{moving trains}) &= \sigma \\ 
-ta(\text{waiting}) &= \infty \\
+C &= \text{Remaining train capacity} \\
+P &= \text{A list of passengers}\cup\emptyset \\
+T &= \text{A group of trains} \\
+L &= \text{A loop of track and station instances} \\
+X &= \lbrace (\text{``Unload Passengers''},(Train\ ID, P, C)), \\
+ & (\text{``Request Move to Station''},(Train\ ID)), \\
+ & (\text{``Request Move to Track''},(Train\ ID)), \\
+ & (\text{``Passengers to Load''},(Station\ ID, P)), \\
+%& (\text{``Breakdown''},(Train\ ID,\mathbb{R}_0^+)), \\
+ & (\text{``Acquire''},(x|x\in\lbrace True,False\rbrace)), \\
+ & (\text{``Release''},(x|x\in\lbrace True,False\rbrace))\rbrace \\
+Y &= \lbrace(\text{``Move to Track''},(Train\ ID,\mathbb{R}_0^+)), \\
+ & (\text{``Move to Station''},(Train\ ID, Station\ ID)), \\
+ & (\text{``Board Passengers''},(Train\ ID, P)), \\
+ & (\text{``Unload Passengers''},(Station\ ID, P)), \\
+ & (\text{``Acquire''},(Train\ ID)), \\
+ & (\text{``Release''},(Train\ ID)), \\
+ & (\text{``N Passengers Delivered''},(\mathbb{N}_0^+)) \\
+S_{action} &= \lbrace \text{``passive'',``processing''}\rbrace \\
+S_{trainPosition} &= \lbrace t_k|t_k\in\mathbb{N}_0^+, 0\leq k<|T|\rbrace \\
+S_{segmentPopulated} &= \lbrace x_k|x_k\in\lbrace True,False\rbrace, 0\leq k<|L|\rbrace \\
+S &= S_{action}\times S_{trainPosition}\times \\
+ & S_{segmentPopulated}\times\mathbb{R}_0^+ \\
+\delta_{ext}(\text{``passive''},e,(\text{``Unload Passengers''},&(Train\ ID,P,C))) = \\ &(\text{``processing''},0,(Train\ ID,P,C)) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Request Move to Station''},&(Train\ ID))) = \\
+&(\text{``processing''},0,(Train\ ID)) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Request Move to Track''},&(Train\ ID))) = \\
+&(\text{``processing''},0,(Train\ ID)) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Passengers to Load''},&(Station\ ID,P))) = \\
+&(\text{``processing''},0,(Station\ ID)) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Acquire''},&(boolean))) = \\
+&(\text{``processing''},0,(boolean)) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Release''},&(boolean))) = \\
+&(\text{``processing''},0,(boolean)) \\
+\delta_{int}(\text{``processing''},\sigma) &= \text{``passive''} \\
+\delta_{int}(\text{``passive''}) &= \text{``passive''} \\
+\lambda(\text{``Move to Track''},\sigma,(Train\ ID,\mathbb{R}_0^+)) &= (\text{``Move to Track''},T\times\mathbb{R}_0^+) \\
+\lambda(\text{``Move to Station''},\sigma,(Train\ ID,Station\ ID)) &= (\text{``Move to Station''},T\times S | S\subset L) \\
+\lambda(\text{``Board Passengers''},\sigma,(Train\ ID,P)) &= (\text{``Board Passengers''},T\times P) \\
+\lambda(\text{``Unload Passengers''},\sigma,(Station\ ID,P)) &= (\text{``Unload Passengers''}, S\times P | S\subset L) \\
+\lambda(\text{``Acquire''},\sigma,(Train\ ID)) &= (\text{``Acquire''},t\in T) \\
+\lambda(\text{``Release''},\sigma,(Train\ ID)) &= (\text{``Release''},t\in T) \\
+\lambda(\text{``N Passengers Delivered''},\sigma,(\mathbb{N}_0^+)) &= (\text{``N Passengers Delivered''},n\in \mathbb{N}_0^+) \\
+ta(s) &= 0 \\ 
+ta(\text{``passive''}) &= \infty \\
 \end{align*}
 
 \subsection{Planned Experiments}
