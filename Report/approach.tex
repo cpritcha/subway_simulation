@@ -10,6 +10,9 @@ The approach considered here consists of five atomic components coupled together
 	\label{fig:hierarchy}
 \end{figure}
 %
+\subsection{Time Advance Scheme}
+All of the models discussed in the following sections, with the exception of the train model, operate in zero time.  None of their state transitions result in any time advance.  Instead, all time advancement is computed in the train instances. While stations handle production and disposal of passengers, they yield no advancement in time to perform these functions.  The train will advance time when boarding or unloading passengers and traveling across track sections.
+%
 \subsection{Station Model}
 The station serves as the creation and destruction point for passengers.  The station is also the only location where trains may load or unload passengers. The station is responsible for maintaining a pool of waiting passengers.  If a train does not have enough capacity to board all waiting passengers, then those passengers persist at the station and wait for the next train.  Also, if at any point a train must unload all of its passengers, in the event of an extended breakdown for example, any passengers not at their final destination will be added to the waiting passengers queue. In generating passengers, the station implements multiple options for generating destinations for each passenger.  In each of the destination options, the destinations are chosen from a predefined set of destinations that does not include the origin station.  One method for generating the destination is to loop through the possible destinations repeatedly, in order.  Another method is to specify a single destination for all passengers.  The third option is to generate a random destination.
 
@@ -178,7 +181,8 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
 
 
 \subsection{Scheduler Model}
-A preliminary formal definition of the DEVS scheduler model is provided below. When a train is ready to resume moving it sends a move request in the form of its ID as in input to the scheduler.  Internally, the scheduler verifies whether or not it is safe to move.  It also identifies any trains currently waiting on the inquiring train.  It takes this collection of trains and outputs move commands to each.  In the case where no trains are able to move, the output is an empty set. The model remains in a perpetual state of waiting until it receives a move request from one of the trains.  It processes this request accordingly, responds, and then reverts back to a waiting state. The state consists of the two phases, waiting or moving trains, and state variables that store the input ID of the requesting train and its position.
+A formal definition of the scheduler model as implemented in the DEVS suite is provided below.  A scheduler is essentially a coordinator model, but since in this case its primary purpose is to maintain the subway train schedule, we identify it as the scheduler. It routes all message traffic between a group of trains and the subway loop, where the subway loop is composed of alternating station and track instances.  Without the scheduler to route messages from trains to the appropriate stations and vice versa, every train would need to be coupled to every track and every station.  Any time an output is sent from a train, it would be received by every track and every station instance as we are unable to rebind the train ports each time it moves to a new track or station. Instead, each time a train generates an output, it sends it only to the scheduler.  The scheduler will then identify to which station or track the message is targeted and repackage and send the message accordingly. Conversely, when a station needs to send a message to a train, the scheduler also manages the reverse association.  
+%
 \begin{align*} DEVS_{\textrm{Scheduler}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
 C &= \text{Remaining train capacity} \\
 P &= \text{A list of passengers}\cup\emptyset \\
@@ -226,6 +230,22 @@ S &= S_{action}\times S_{trainPosition}\times \\
 ta(s) &= 0 \\ 
 ta(\text{``passive''}) &= \infty \\
 \end{align*}
+
+Note that the current implementation of the scheduler does not actually make use of the \textit{Acquire} and \textit{Release} features of the track section models. These semaphores are key in facilitating coupling in a simulation of multiple subway lines.  The intent is that multiple lines might share sections of track.  The semaphores are then necessary to ensure that only a specified number of trains are on a section of track at a time.  This is particularly useful when considering a pass capability.  If one train is blocking a section of track, using switches it would be possible for trains to bypass the blockage by temporarily switching over to the other side of the track. Because track instances can be shared by reference across multiple subway lines, the semaphores are needed to ensure a path around a blockage is available.  However, even though the basic framework exists for implementing this logic, given time constraints this logic was unable to be fully completed.
+\subsubsection{Scheduler Logic}
+The scheduler is the logic center of the simulation. Any train movement decisions are made exclusively by the scheduler. Since the trains are not directly coupled to the stations and track sections, the trains have no concept of where they are. The scheduler maintains some internal data structures that store the train positions and which sections of the subway loop are occupied.  The train positions are stored using a map where the keys are the train UUIDs and the values are the integer positions of the train.  As the subway loop is stored as an array, the number of possible positions is the length of that array.  Each time a train is moved forward, the scheduler increments its position by one according to
+\begin{equation}
+x_{n+1} = (x_n+1)\mod L
+\end{equation}
+where $x_{n+1}$ is the next position, $x_n$ is the current position, and $L$ is the total number of stations and track segments in the subway loop.  This gives an effective circular array.
+%
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=5.5in]{moveToStation.png}
+	\caption{Scheduler Logic for Moving Train into Station}
+	\label{fig:movetostation}
+\end{figure}
+
 
 \subsection{Planned Experiments}
 The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
