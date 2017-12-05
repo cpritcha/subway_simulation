@@ -52,41 +52,42 @@ ta(``passive'') &= \infty \\
 The track section model is needed to control access to track sections. A train
 is permitted to enter a section if there is remaining capacity in the section.
 When a train leaves a section the section's remaining capacity is increased by
-one. The track section model can be represented by the DEVS with ports model 
-below.
+one. Acquire and release requests are sorted by train ID so that the external
+transition does is not determined by an arbitary bag ordering. The track 
+section model can be represented by the DEVS with ports model below.
 
-\newcommand{\InEnterReq}[0]{(\text{``Enter Request''}, ())}
-\newcommand{\InExitReq}[0]{(\text{``Exit Request''}, ())}
+\newcommand{\InEnterReq}[0]{(\text{``Enter Request''}, \text{TrainID})}
+\newcommand{\InExitReq}[1]{(\text{``Exit Request''}, \text{TrainID})}
 
 \newcommand{\OutEnterRes}[1]{(\text{``Enter Response''}, #1)}
 
-\begin{align*}
-DEVS_{\textrm{Track}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
-    A &= \text{Number of trains allowed on section} \\
-    X &= \{\InEnterReq, \\
-        & \InExitReq
-    \} \\
-    Y &= \{\OutEnterRes{\{\text{May enter}, \text{May not enter}\}}\} \\
-    S &= \{ a | a \in \mathbb{N}_0, a \leq A \} \\
-    ta(S) &= \infty \\
-    \delta_{ext}(a, e, \InEnterReq) &= 
-        \begin{cases}
-            a - 1 & \text{if\;} a > 0 \\
-            a & \text{otherwise} \\
-        \end{cases} \\
-    \delta_{ext}(a, e, \InExitReq) &= 
-        \begin{cases}
-            a + 1 & \text{if\;} a < A \\
-            a & \text{otherwise} \\
-        \end{cases} \\
-    \lambda(a) &= 
-        \begin{cases}
-            \text{May enter} & \text{if\;} a > 0 \\
-            \text{May not enter} & \text{otherwise} \\
-        \end{cases}
-\end{align*}
-%
+\begin{flalign*}
+    &DEVS_{\textrm{Track}} = \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>& \\
+    &A = \text{Number of trains allowed on section}& \\
+    &X = \{ \InEnterReq, \InExitReq \} & \\
+    &Y = \{\OutEnterRes{\{\text{May enter}, \text{May not enter}\}}\}& \\
+    &Acquired = \text{Set of possible Train ID Sets}& \\
+    &M = \text{Set of acquire and release messages}& \\
+    &S = \{ (p, a, m, \sigma) | p \in \{passive, busy\}, a \in Acquired, a \leq A, \sigma \in \mathbb{R}_0^+ \}& \\
+    &ta((\_, \_, \_, \sigma)) = \sigma& \\
+    &\delta_{int}((p, a, m, \_)) = (passive, a, \{ \}, \infty)& \\
+    \intertext{Input messages are split into acquires and releases and sorted by train ID} 
+    &\delta_{ext}((p, a, m, \sigma), e, ((), ())) =& (busy, a, m, 0)& \\
+    &\delta_{ext}((p, a, m, \_), e, ((), acquires)) =& \\ 
+    &\quad\begin{cases}
+        \delta_{ext}((busy, a.add(head(acquire)), m.add((head(acquire), true)), 0), e, (tail(acquires), ())) \\ \quad\text{if\;} a > 0, head(acquires) \not\in a \\
+        \delta_{ext}((busy, a, m.add((head(acquire), false)), 0), e, (tail(acquires), ())) \\ \quad\text{if\;} a > 0, head(acquires) \in a \\
+    \end{cases}& \\
+    &\delta_{ext}((p, a, m, \_), e, (releases, acquires)) =& \\ 
+        &\quad\begin{cases}
+            \delta_{ext}((busy, a.remove(head(releases)), m.add((head(releases), true)), 0), e, (tail(releases), (acquires))) \\ \quad\text{if\;} a > 0, head(releases) \in a \\
+            \delta_{ext}((busy, a, m.add((head(releases), false)), 0), e, (tail(releases), (acquires))) \\ \quad\text{if\;} a > 0, head(releases) \not\in a \\
+        \end{cases}& \\
+    &\lambda((\_, \_, m, \_)) = m&
+\end{flalign*}
+
 \subsection{Subway Loop Model}
+
 To simplify couplings between the large numbers of stations and tracks with the scheduler, the subway loop model is a digraph that contains the stations and tracks for a given subway line.  The subway loop model has the same input and output ports as the stations and tracks.  As the input and output ports for the subway loop model are coupled to every instance of a station or track section contained within, the station and track section models must filter the messages based on the unique identifier that is passed along with each message. Thus, all station instances receive all station messages and all track sections receive all track messages, but filtering the processing of the messages based on the unique identifier means only the targeted instance will process a given message. The subway loop model stores the stations and tracks in a circular array.  It is assumed that stations are located at even indices in the array and track sections at odd indices. This allows the scheduler to quickly identify whether a train is at a station or on a track section using just an integer array index value.
 
 \subsection{Train Model}
