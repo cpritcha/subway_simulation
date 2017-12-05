@@ -20,6 +20,7 @@ public class BaseExpFrame extends ViewableDigraph{
     }
 
     public void addLoop(SubwayLoop loopLayout, TrainGroup trainGroup, ArrayList<Integer> initialPositions) {
+        _transducer.setName(String.format("Transducer_%s", loopLayout.getName()));
         Scheduler scheduler = new Scheduler("Scheduler_" + loopLayout.getName().replaceAll(" ", ""), loopLayout, trainGroup, initialPositions);
 
         // Add the objects to the experimental frame

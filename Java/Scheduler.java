@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.UUID;
 
 public class Scheduler extends ViewableAtomic {
-	
+
 	// Use a priority queue to keep track of waiting trains.
 	// This way we can order the queue by station number and work
 	// backwards to completely clear any jams.
@@ -101,8 +101,8 @@ public class Scheduler extends ViewableAtomic {
 		
 		// Open the log file
 		try {
-			logWriter = new FileWriter(new File(this.name+".log"));
-			logWriter.write(String.format("%-10s %-40s %-15s\n", "Clock", "Train ID", "Next Position"));
+			logWriter = new FileWriter(new File("data/" + this.name+".log"));
+			logWriter.write(String.format("%-10s %-40s %-15s\n", "Clock", "Train Name", "Next Position"));
 			logWriter.flush();
 		} catch (IOException ex) {
 			ex.printStackTrace();
@@ -258,10 +258,10 @@ public class Scheduler extends ViewableAtomic {
 			// Write the time, the train, and the next position to the log
 			try {
 				if (nextPosition%2==0) {
-					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, nextPosition));
+					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trains.get(trainID).getName(), nextPosition));
 				}
 				else {
-					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trainID, trainPosition));
+					logWriter.write(String.format("%-10.2f %-40s %-3d\n", clock, trains.get(trainID).getName(), trainPosition));
 				}
 				logWriter.flush();
 			} catch (IOException ex) {

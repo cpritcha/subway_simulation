@@ -1,5 +1,10 @@
 # Subway Simulation
 
+## Generating Data
+
+Run `RunSimulation.java` and it will create the necessary data in the data folder, performing each
+experiment 60 times each.
+
 ## Presentation
 
 ### Install Dependencies
