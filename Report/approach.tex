@@ -226,6 +226,7 @@ S &= S_{action}\times S_{trainPosition}\times \\
 &(\text{``processing''},0,(boolean)) \\
 \delta_{int}(\text{``processing''},\sigma) &= \text{``passive''} \\
 \delta_{int}(\text{``passive''}) &= \text{``passive''} \\
+\delta_{con}(s,ta(s),x) &= \delta_{ext}(\delta_{int}(s),0,x) \\
 \lambda(\text{``Move to Track''},\sigma,(Train\ ID,\mathbb{R}_0^+)) &= (\text{``Move to Track''},T\times\mathbb{R}_0^+) \\
 \lambda(\text{``Move to Station''},\sigma,(Train\ ID,Station\ ID)) &= (\text{``Move to Station''},T\times S | S\subset L) \\
 \lambda(\text{``Board Passengers''},\sigma,(Train\ ID,P)) &= (\text{``Board Passengers''},T\times P) \\
@@ -266,13 +267,40 @@ To store the train positions over time, rather than send each train position to 
 	\label{fig:sampletrajectories}
 \end{figure}
 
-\subsubsection{Input Port Processing}
+\subsubsection{Scheduler Input Port Processing}
 The scheduler processes all messages on all input ports before changing phase.  This all happens with zero time advance as all time advancement occurs in the train models.  In the external transition function, the model loops through all of the input ports and processes each of the messages on a given port.  When necessary, for example when a train has requested to move and the scheduler needs to respond, any output messages are generated and stored before the output function is called.  The output function then sends messages on all of the output ports at the same time.  This approach ensures that if multiple trains are arriving at different locations simultaneously, the scheduler is able to respond to each and every input it receives.  After all of the input ports have been processed, the scheduler then attempts to move each train in the waiting queue.
 
-\subsection{Planned Experiments}\label{section:experiment_setup}
-The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
+\subsection{Transducer Model}
+The DEVS specification for the transducer model is given below.  The transducer model is used to collect some data about the entire subway system simulation and print some representative statistics. Each time a train provides passengers to the scheduler for unloading at a station, the scheduler will send the number of unloaded passengers to the transducer.  Since the stations produce passengers at a fixed rate, running various experiments over the same amount of time and examining the total number of passengers delivered to their destinations provides some insight on the total system passenger capacity.  If the system experiences significant delays, then the total number of passengers delivered is expected to go down.  Each train also maintains an internal clock to compute its own wait times. Every time the train is given a command to move by the scheduler, it provides its latest wait time to the transducer.  The transducer then provides a total sum of minutes waited by all trains in the system.  It also computes two averages.  The first average wait time uses all wait times provided, inclusive of zero values.  The second average wait time only uses non-zero wait times, meaning if and when there is a delay, this is the average of those delays.  Upon reaching the specified transducer observation time, it emits a stop signal to all of the trains that passivates them and ends the simulation.  Without this stop signal, the trains would run in perpetuity, making specific experimental observations difficult.
+\begin{align*} DEVS_{\textrm{Transducer}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
+\Delta t &= \text{Observation Time} \\
+X &= \lbrace (\text{``N Passengers Delivered''},(\mathbb{N}_0^+)), \\
+ & (\text{``Wait Time''},(\mathbb{R}_0^+))\rbrace \\
+Y &= \lbrace(\text{``Stop''},\lbrace True\rbrace)\rbrace \\
+S &= \lbrace\text{``active'', ``passive''}\rbrace\times\Delta t \\
+\delta_{ext}(\text{``active''},e,(\text{``N Passengers Delivered''},\mathbb{N}_0^+)) &= (\text{``active''},\sigma-e) \\
+\delta_{ext}(\text{``active''},e,(\text{``Wait Time''},\mathbb{R}_0^+)) &= (\text{``active''},\sigma-e) \\
+\delta_{int}(\text{``active''}) &= \text{``passive''} \\
+\delta_{int}(\text{``passive''}) &= \text{``passive''} \\
+\delta_{con}(s,ta(s),x) = \delta_{ext}(\delta_{int}(s),0,x) \\
+\lambda(\text{``active''}) &= (\text{``Stop''},True) \\
+ta(s) &= \Delta t \\
+ta(\text{``passive''}) &= \infty \\
+\end{align*}
 
-These experiments will also involve varying the number of trains in service, with the goal of finding the optimum number of trains particular to the subway circuit modeled.  An increase in the number of trains may nominally be able to carry a larger number of passengers, assuming the number of trains does not exceed the number of stations.  However, if a disruption occurs and a train is disabled, this can quickly lead to deadlock as there is no extra bandwidth in the rail system to allow the trains to switch and get around the disabled train because all stations are occupied at any given time.  Conversely, if there are too few trains operating it runs the risk of not having enough total capacity to carry the influx of passengers, even though it may be easier to overcome service disruptions.
+\subsection{Experimentation}\label{section:experiment_setup}
+The Toronto Transit Commission (TTC) posts a large amount of data on the internet for their multiple forms of public transit.~\cite{ttcdata} Data available includes ridership, revenues, station usage, routes, and schedules.  Because the data available aids in choosing many quantities relative to this DEVS simulation, the TTC Scarborough Line is chosen as the basis for study.  Figure~\ref{fig:subwaymap} shows a map of this subway line.  It consists of six stations, is labeled line number three, and is colored blue.
+%
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=7.0in]{SubwayFutureMap_lg.jpg}
+	\caption{Toronto Subway System~\cite{ttcmap}}
+	\label{fig:subwaymap}
+\end{figure}
+
+%The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
+
+%These experiments will also involve varying the number of trains in service, with the goal of finding the optimum number of trains particular to the subway circuit modeled.  An increase in the number of trains may nominally be able to carry a larger number of passengers, assuming the number of trains does not exceed the number of stations.  However, if a disruption occurs and a train is disabled, this can quickly lead to deadlock as there is no extra bandwidth in the rail system to allow the trains to switch and get around the disabled train because all stations are occupied at any given time.  Conversely, if there are too few trains operating it runs the risk of not having enough total capacity to carry the influx of passengers, even though it may be easier to overcome service disruptions.
 
 \subsection{Expected Outcomes}
 
