@@ -244,7 +244,7 @@ The scheduler is the logic center of the simulation. Any train movement decision
 \begin{equation}
 x_{n+1} = (x_n+1)\mod L
 \end{equation}
-where $x_{n+1}$ is the next position, $x_n$ is the current position, and $L$ is the total number of stations and track segments in the subway loop.  This gives an effective circular array. It is the user's responsibility to ensure that the last element in the subway loop should be a segment that is physically connected to the first element.  For example, if the first element in the subway loop is ``Station A East,'' then the last element should be a track segment and the second to last element should be ``Station A West.''  The exact subway loop used for experimentation in this report is described in Section~\ref{section:experiment_setup}.
+where $x_{n+1}$ is the next position, $x_n$ is the current position, and $L$ is the total number of stations and track segments in the subway loop.  This gives an effective circular array. It is the user's responsibility to ensure that the last element in the subway loop should be a segment that is physically connected to the first element.  For example, if the subway line being modeled has two endpoints rather than being a continuous loop, where the first stop in the subway loop is ``Station A'' and is followed by ``Station B (East),'' then the last element in the array should be a track segment and the second to last element should be ``Station B West.''  The exact subway loop used for experimentation in this report is described in Section~\ref{section:experiment_setup}.
 
 Figure.~\ref{fig:movetostation} shows the decision tree the scheduler uses to respond to a request from a train to move into a station. The process is identical for a move to track section request, though different input and output ports are used due to the prescribed sequence of internal transitions in the train atomic model. To start the sequence, a train sends a message requesting a move to the next station along with its UUID.  The scheduler feeds this UUID to its internal map that provides the train's current position in the subway loop.  The scheduler then computes the next position and examines this next position in the boolean array to verify whether or not that track section is currently occupied.  If the section is occupied, then the scheduler places the train in a queue for waiting trains.  This queue is stored internally to the scheduler.  No response is sent to the train, so the train is left in a waiting state.  However, if the next track section is empty the scheduler will first update the train position in the HashMap.  It will then update an additional HashMap that uses station UUIDs as the keys and train UUIDs as the values.  The scheduler then generates a message for its ``Move to Station'' output port and sends the train UUID in the message.  All trains in the train group will receive this message, but only the train with a matching UUID will process the message.
 \begin{figure}[htb]
@@ -258,7 +258,7 @@ This station-to-train association HashMap is used when the station provides pass
 %
 
 \subsubsection{Scheduler Log File}
-To store the train positions over time, rather than send each train position to a transducer, the scheduler writes to a log file each time a train is moved. This allows the train positions to be plotted with an external tool, in this case \textit{matplotlib}.  The log file contains three columns of data: the scheduler clock value, the train UUID, and the array index representing station the train is moving into or leaving.  Data is written whenever the scheduler is updating the train position.  By only writing station indices and not track indices, it is easier to represent the time stopped at a station.  Fig.~\ref{fig:sampletrajectories} is an example of the trajectories for six trains on a subway loop with six stops.  Each color represents one train.  The horizontal segments of the trajectories represent the time spent stopped at a station. A positive slope represents travel in one direction and a negative slope represents the return trip. The travel time between stations is fixed, so variations in slope are representative of trains that must wait to enter or leave stations.  Overlap between two or more trains at a stop would indicate the scheduler is not functioning properly and allowing collisions.  The exception is the end stations Kennedy and McCowan.  Two stations are actually represented at the ends, one for each direction.  What appears to be overlap between trains is actually just one train at the platform for one direction and a second train for the other direction.  The interior stops are much clearer in showing that no collisions are occurring.  
+To store the train positions over time, rather than send each train position to a transducer, the scheduler writes to a log file each time a train is moved. This allows the train positions to be plotted with an external tool, in this case \textit{matplotlib}.  The log file contains three columns of data: the scheduler clock value, the train UUID, and the array index representing station the train is moving into or leaving.  Data is written whenever the scheduler is updating the train position.  By only writing station indices and not track indices, it is easier to represent the time stopped at a station.  Fig.~\ref{fig:sampletrajectories} is an example of the trajectories for six trains on a subway loop with six stops.  Each color represents one train.  The horizontal segments of the trajectories represent the time spent stopped at a station. A positive slope represents travel in one direction and a negative slope represents the return trip. The travel time between stations is fixed, so variations in slope are representative of trains that must wait to enter or leave stations.  Overlap between two or more trains at a stop would indicate the scheduler is not functioning properly and allowing collisions.   
 %
 \begin{figure}[htb]
 	\centering
@@ -297,6 +297,21 @@ The Toronto Transit Commission (TTC) posts a large amount of data on the interne
 	\caption{Toronto Subway System~\cite{ttcmap}}
 	\label{fig:subwaymap}
 \end{figure}
+The Scarborough line as represented in this simulation is shown in Fig.~\ref{fig:scarborough}.  Each box in the figure represents a station instance, with one instance per direction per stop.  The arrows joining the stations represent the track sections and are labeled with the travel times between stations. As stored by the \texttt{SubwayLoop} class, the first item in the array is the Kennedy station instance and the last item in the array is the track section from Lawrence East (West) to Kennedy. The endpoints of the Scarborough line are modeled with single station instances, whereas all of the interior stations have instances for each direction of travel, as the station class effectively only models a single direction of travel.  The travel times between the stations are taken from the chart in Fig.~\ref{fig:traveltimes}.
+%
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=7.0in]{ScarboroughLoop.png}
+	\caption{Scarborough Loop Model}
+	\label{fig:scarborough}
+\end{figure}
+%
+\begin{figure}[htb]
+	\centering
+	\includegraphics[width=7.0in]{ttc_travel_times_scarborough.jpg}
+	\caption{TTC Travel Time Calculator~\cite{subwaytimes}}
+	\label{fig:traveltimes}
+\end{figure}
 
 %The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
 
@@ -305,3 +320,5 @@ The Toronto Transit Commission (TTC) posts a large amount of data on the interne
 \subsection{Expected Outcomes}
 
 The subway simulation in this paper is designed to focus on two outcome variables: passenger wait times at stations and train delays. The expected outcome from this simulation is that increases in passing areas decreases train delays and a increased number of trains to service a subway line results in lower passenger wait times at stations.
+
+
