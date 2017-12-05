@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.ticker import FuncFormatter, MaxNLocator
@@ -41,11 +42,19 @@ def plotSchedule(filename, data):
 
     fig = plt.figure()
     for name in uniqueNames:
-        fig.plot(clocks[name],locations[name])
-        fig.grid(True)
-        fig.xlabel('Time (minutes)')
+        plt.plot(clocks[name],locations[name])
+        plt.grid(True)
+        plt.xlabel('Time (minutes)')
 
     fig.gca().yaxis.set_major_formatter(FuncFormatter(format_yticks))
     fig.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
     fig.savefig('{}.png'.format(filename))
     fig.show()
+
+if __name__=='__main__':
+    for path in ['Scheduler_ExpFrame4TrainsNoDelays.log', 'Scheduler_ExpFrame4TrainsWithDelays.log', 
+        'Scheduler_ExpFrame6TrainsNoDelays.log', 'Scheduler_ExpFrame6TrainsWithDelays.log']:
+        data = np.genfromtxt(os.path.join('../data', path),skip_header=1,dtype=None)
+        name, ext = os.path.splitext(path)
+        plotSchedule(name, data)
+    plt.show()
