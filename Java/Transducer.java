@@ -4,6 +4,11 @@ import GenCol.*;
 import model.modeling.*;
 import view.modeling.ViewableAtomic;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.PrintWriter;
+
 public class Transducer extends ViewableAtomic {
 
 	protected double observationTime;
@@ -93,6 +98,7 @@ public class Transducer extends ViewableAtomic {
 		clock = clock + sigma;
 		passivate();
 		show_state();
+		saveResultsToFile();
 	}
 
 	public message out() {
@@ -101,6 +107,32 @@ public class Transducer extends ViewableAtomic {
 			m.add(makeContent("Stop", new entity("Stop")));
 		}
 		return m;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void saveResultsToFile() {
+		File f = new File("data/" + this.name + ".log");
+		boolean exists = f.exists();
+		try (FileWriter logWriter = new FileWriter(f, true);
+			 BufferedWriter bw = new BufferedWriter(logWriter);
+			 PrintWriter out = new PrintWriter(bw)) {
+			if (!exists) {
+				out.print(String.format("%s, %s, %s, %s, %s, %s, %s\n",
+						"Name", "Passengers Carried",
+						"Accumulated Load Unload Delays", "Average Load Unload Delay", "Average Load Unload Nonzero Delay",
+						"Total Transit Delay", "Average Transit Delay"));
+			}
+			out.print(String.format("%s, %d, %d, %.4f, %.4f, %.4f, %.4f\n",
+					getName(), totalPassengersDelivered, totalLoadUnloadDelayTime,
+					totalLoadUnloadDelayTime /(double) delayLoadUnloadTimeCount,
+					totalLoadUnloadDelayTime /(double) nonzeroLoadUnloadDelayTimeCount,
+					totalTransitDelayTime, totalTransitDelayTime /(double) delayTransitTimeCount));
+		} catch (java.io.IOException ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public void show_state() {

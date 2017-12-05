@@ -6,10 +6,13 @@ import view.modeling.ViewableDigraph;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.UUID;
 
 public class TrainGroup extends ViewableDigraph {
 
     protected ArrayList<Train> trains;
+    protected HashMap<UUID, Train> idToTrains;
 
     public TrainGroup(String name, ArrayList<String> TrainNames, UniformRandom loadingTimeDistribution,
                       double delayProbability, UniformRandom delayTimeDistribution) {
@@ -19,6 +22,11 @@ public class TrainGroup extends ViewableDigraph {
         trains = new ArrayList<Train>(TrainNames.size());
         for (String tname : TrainNames) {
             trains.add(new Train(tname, loadingTimeDistribution, delayProbability, delayTimeDistribution));
+        }
+
+        idToTrains = new HashMap<>();
+        for (Train train: trains) {
+           idToTrains.put(train.getID(), train);
         }
 
         // Add the inports
@@ -58,6 +66,8 @@ public class TrainGroup extends ViewableDigraph {
     public Train get(int index) {
     	return this.trains.get(index);
     }
+
+    public Train get(UUID id) { return idToTrains.get(id); }
     
     public int size() {
     	return this.trains.size();

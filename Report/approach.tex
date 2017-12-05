@@ -72,7 +72,7 @@ section model can be represented by the DEVS with ports model below.
     &ta((\_, \_, \_, \sigma)) = \sigma& \\
     &\delta_{int}((p, a, m, \_)) = (passive, a, \{ \}, \infty)& \\
     \intertext{Input messages are split into acquires and releases and sorted by train ID} 
-    &\delta_{ext}((p, a, m, \sigma), e, ((), ())) =& (busy, a, m, 0)& \\
+    &\delta_{ext}((p, a, m, \sigma), e, ((), ())) = (busy, a, m, 0)& \\
     &\delta_{ext}((p, a, m, \_), e, ((), acquires)) =& \\ 
     &\quad\begin{cases}
         \delta_{ext}((busy, a.add(head(acquire)), m.add((head(acquire), true)), 0), e, (tail(acquires), ())) \\ \quad\text{if\;} a > 0, head(acquires) \not\in a \\
