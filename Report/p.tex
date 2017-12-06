@@ -1,0 +1,72 @@
+\section{Problem Description}
+
+The subway scheduling problem can be represented by a Petri net using the method outlined in Potekhin.
+In this model stations and sections are places and subway trains are tokens. Transitions control whether
+or not a train is allowed to enter the track section or station. A train can enter a station or track section
+if there is enough capacity. Capacity is the number of trains able to inhabit a section or station. 
+
+\begin{tikzpicture}[node distance=1.3cm,>=stealth',bend angle=45,auto]
+    
+      \tikzstyle{place}=[circle,thick,draw=blue!75,fill=blue!20,minimum size=6mm]
+      \tikzstyle{red place}=[place,draw=red!75,fill=red!20]
+      \tikzstyle{transition}=[rectangle,thick,draw=black!75,
+                    fill=black!20,minimum size=4mm]
+    
+      \tikzstyle{every label}=[red]
+    
+      \begin{scope}
+        \node [place,tokens=2] (station1) [label=above:Station 1] {};
+        \node [place] (midpoint_station1station2) [left of=station1, below of=station1] {};
+        \node [place,tokens=1] (midpoint_station2station1) [right of=station1, below of=station1] {};
+        \node [place] (station2) [right of=midpoint_station1station2, below of=midpoint_station1station2, label=below:Station 2] {};
+
+        \node [transition] (enter_station1) [left of=station1] {t4}
+            edge [pre]                  (midpoint_station1station2)
+            edge [post]                 (station1);
+
+        \node [transition] (enter_midpoint_station1station2) [left of=station2] {t3}
+            edge [pre]                  (station2)
+            edge [post]                 (midpoint_station1station2);       
+    
+        \node [transition] (enter_station2) [right of=station2] {t2}
+            edge [pre]                  (midpoint_station2station1)
+            edge [post]                 (station2);
+
+        \node [transition] (enter_midpoint_station1station2) [right of=station1] {t1}
+            edge [pre]                  (station1)
+            edge [post]                 (midpoint_station2station1);
+      \end{scope}
+    \end{tikzpicture}
+
+The subway system modeled in this paper consists of a single, circular track
+with \(n\) stations. Track segments connect the \(n-1\) and \(n\) stations and
+are given by \(d_n\). The time it takes a train to go from one station to
+another is dependent on the distance between stations and the presence of other
+trains ahead of the train on the same segment.
+
+\begin{itemize}
+    \item Trains cannot overtake one another on the same track section
+    \item Trains can overtake one another at stations
+    \item The amount of time it takes a train takes to go from one station to
+    another is dependent on train in front of it, how the train 
+\end{itemize}
+
+\subsection{Subway Trains}
+
+A subway train's internal state consists of two pieces --- a current train state
+and an amount of time til the next internal state transition. The amount of time
+til the next state is a \code{float}. The current train state is a categorical
+variable with a value of \code{loading}, \code{unloading}, \code{traveling},
+\code{broken down} or \code{collision}. A broken train prevents other trains
+from passing if it is on the tracks. Collisions prevent trains from passing on
+both the tracks and the stations.
+
+\subsection{Tracks}
+
+Subway tracks enforce train ordering. Their transitions prevent trains from
+overtaking one another
+
+\subsection{Stations}
+
+A subway station may or may not contain a train that is either unloading or
+loading.
