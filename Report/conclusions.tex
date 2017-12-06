@@ -2,16 +2,16 @@
 
 Subway systems help transport people all over the world. This paper created a
 simple model of the Scarborough line in Toronto. By varying the number of trains
-and the presence of delays the model showed a substantial increase in passengers
-served going from four trains to eight trains under average load. 
+and the presence of delays, the model showed a substantial increase in passengers
+served and total accumulated delay time going from four trains to eight trains under average load. 
 
 \subsection{Limitations}
 
 The model used in this paper is limited and could be improved in many ways. Passengers
 destinations in this model are generated independent of the station they are generated
 from. This means that passengers do not always take the shortest route to get where
-they want to go. Stations in this model can also only hold one train. Since many train
+they want to go. Stations and track sections in this model can also only hold one train. Since many train
 stations allow trains to pass a docked train it would be helpful to incorporate that
 into the model. Variation in passenger arrival numbers is also needed to better model
-rush hour where passenger arrival is very high one direction and low the other (but 
-that would require data we do not have access to).
+rush hour where passenger arrival is very high one direction and low in the other (but 
+that would require data which is currently unavailable).  Higher resolution models on the train motion, actually computing motion rather than assuming just a time advance for that motion, could yield extra efficiencies in the system by allowing trains to be only a specified distance from another, rather than isolating a whole segment of track for just one train. Cost could also be an important factor in subway modeling that is currently not captured here.  While eight trains can carry more passengers, perhaps it actually costs less overall to only run six trains, sacrificing increased revenue from the passenger counts for lower overall operating and maintenance costs.  This would be an important consideration for any municipality when designing a mass transit system.  

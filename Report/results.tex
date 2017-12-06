@@ -1,10 +1,9 @@
 \section{Results}
 
-Summary statistics of the six different experiments are shown in table
+Summary statistics of the six different experiments are shown in Table
 ~\ref{tab:experiment_results}. Each subway system simulation is run for two
 hours (simulated time) 50 times to get information on the variability of
-simulation runs. Passengers carried and passengers waiting are counts and 
-delay statistics are measured in minutes.
+simulation runs due to the random nature of the passenger load and in-transit delay implementation. Passengers that are delivered to their destination and passengers left waiting at stations at the simulation termination time are counted.  Delay statistics are measured in minutes.
 
 % In order to add results you must run doc/result_processing.ipynb in order to generate
 % experiment_result_table.png
@@ -17,14 +16,12 @@ delay statistics are measured in minutes.
 Experiment results match expectations. Introducing uniformly distributed zero
 to three minute delays slightly reduces the number of passengers that can be 
 served in two hours. Increasing the number of trains increases the number of 
-passengers served. Variable transit delays increase the variability of the system.
-Passengers carried plus passengers waiting are approximately equal across all
-experiments which makes sense because passengers are being generated at the
-same rate for all the experiments run.
+passengers served, but it also increased the total accumulated delay time. The ``delay time'' is somewhat subjective.  As currently implemented, the delay time is the time spent by a train waiting for a station or track section to clear, or a specified random delay.  However, some of these delay times could be alleviated by implementing a more refined travel time on the track sections.  Rather than needing to spend time waiting, trains could simply move slower across a track section.  Instead of a fixed time on a section of track, which assumes the entire segment must only be occupied by one train, a higher resolution travel model could be implemented that allows multiple trains to be on the same segment of track, but with some specified safety distance.  This higher resolution model alone could eliminate some of the observed delays.
+
+Variable transit delays are observed increasing the variability of the system.  without these delays, the time between stations is more than sufficient for trains to move freely without ever encountering one another.  The randomness and magnitude of the passenger load times and transit delays result in situations where trains must wait for sections of track and stations to clear before proceeding.  Passengers carried plus passengers left waiting at stations are approximately equal across all experiments which makes sense because passengers are being generated at the same rate for all the experiments run.  However, passengers left on the train at simulation termination are not counted, which likely accounts for the relatively small differences in passenger totals between the simulation runs.
 
 The schedule plots below show the trajectory of the trains on the Scarborough
-line. Notice that trains heading in the same direction do not cross one
-another. This means that there are no collisions in our simulation. Also notice
+line for one run of each experimental frame. Notice that trains heading in the same direction (meaning the same slope) do not cross or overlap one another. This means that there are no collisions in our simulation. Also notice
 that the trajectories with delays have lower slopes than others for which
 indicates a delay traveling from one station to another.
 
