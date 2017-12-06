@@ -262,7 +262,7 @@ To store the train positions over time, rather than send each train position to 
 %
 \begin{figure}[htb]
 	\centering
-	\includegraphics[width=7.5in]{sampletrajectories.png}
+	\includegraphics[width=7.0in]{sampletrajectories.png}
 	\caption{Sample Trajectories from Scheduler Log File}
 	\label{fig:sampletrajectories}
 \end{figure}
@@ -313,7 +313,7 @@ The Scarborough line as represented in this simulation is shown in Fig.~\ref{fig
 	\label{fig:traveltimes}
 \end{figure}
 
-The most recent ridership data available for the Scarborough line is from 2015. Reference~\citen{ridershipdata} provides the number of passengers leaving and arriving at each station on an average business day.  For the Scarborough line, these values are provided in Table~\ref{table:ridership}.  To get the passenger generation rates, the average daily passengers to the trains are assumed over a twelve hour period.  So dividing the daily passengers by the number of minutes in an hour gives an initial rate.  With this rate, early experimentation showed there was plenty of capacity on the trains.  So double that initial rate is used to simulate more of a rush hour level of passengers.
+The most recent ridership data available for the Scarborough line is from 2015. Reference~\citen{ridershipdata} provides the number of passengers leaving and arriving at each station on an average business day.  For the Scarborough line, these values are provided in Table~\ref{table:ridership}.  To get the passenger generation rates, the average daily passengers to the trains are assumed over a twelve hour period.  So dividing the daily passengers by the number of minutes in an hour gives an initial rate.  Some of the stops are actually modeled with two station instances (one for each direction), so half the initial rate needs to be applied to each direction.  In some cases, half is not an integer value, so it is rounded up to the nearest integer.  This results in more passengers generated relative to the available data, but this is good as it can be considered more of a rush hour or stress case.
 %
 \begin{table}[htb]
 	\centering
@@ -321,16 +321,18 @@ The most recent ridership data available for the Scarborough line is from 2015. 
 		\textbf{Station} & \textbf{Average Daily} & \textbf{Applied Passenger Generation} \\
 		                 & \textbf{Passengers to Train} & \textbf{Rate (Passengers/minute)} \\
 		\hline\hline
-		Kennedy & 17,969 & 26 \\
-		Lawrence East & 4,326 & 6 \\
+		Kennedy & 17,969 & 13 \\
+		Lawrence East & 4,326 & 4 \\
 		Ellesmere & 864 & 2 \\
 		Midland & 1,358 & 2 \\
-		Scarborough Centre & 10979 & 16 \\
+		Scarborough Centre & 10979 & 8 \\
 		McCowan & 2,857 & 4 \\
 	\end{tabular}
 \caption{Scarborough Line Ridership Details~\cite{ridershipdata}}
 \label{table:ridership}
 \end{table}
+
+Reference~\citen{trainCapacity} offers some insight on the baseline train configuration for the Scarborough line.  The trains are known as the S-series trains and have a capacity of 30 seated and 55 standing passengers per train.  Currently, there are 6 four-car trains operating on the Scarborough line.
 
 %The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
 
