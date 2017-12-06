@@ -75,7 +75,8 @@ section model can be represented by the DEVS with ports model below.
     &S = \{ (p, a, m, \sigma) | p \in \{passive, busy\}, a \in Acquired, a \leq A, \sigma \in \mathbb{R}_0^+ \}& \\
     &ta((\_, \_, \_, \sigma)) = \sigma& \\
     &\delta_{int}((p, a, m, \_)) = (passive, a, \{ \}, \infty)& \\
-    \intertext{Input messages are split into acquires and releases and sorted by train ID} 
+    \intertext{Input messages are split into acquires and releases and sorted by train ID. 
+    It is assumed that acquires and releases are lists of train IDs with the usual head and tail operations.} 
     &\delta_{ext}((p, a, m, \sigma), e, ((), ())) = (busy, a, m, 0)& \\
     &\delta_{ext}((p, a, m, \_), e, ((), acquires)) =& \\ 
     &\quad\begin{cases}
@@ -84,8 +85,8 @@ section model can be represented by the DEVS with ports model below.
     \end{cases}& \\
     &\delta_{ext}((p, a, m, \_), e, (releases, acquires)) =& \\ 
         &\quad\begin{cases}
-            \delta_{ext}((busy, a.remove(head(releases)), m.add((head(releases), true)), 0), e, (tail(releases), (acquires))) \\ \quad\text{if\;} a > 0, head(releases) \in a \\
-            \delta_{ext}((busy, a, m.add((head(releases), false)), 0), e, (tail(releases), (acquires))) \\ \quad\text{if\;} a > 0, head(releases) \not\in a \\
+            \delta_{ext}((busy, a.remove(head(releases)), m.add((head(releases), true)), 0), e, (tail(releases), acquires)) \\ \quad\text{if\;} a > 0, head(releases) \in a \\
+            \delta_{ext}((busy, a, m.add((head(releases), false)), 0), e, (tail(releases), acquires)) \\ \quad\text{if\;} a > 0, head(releases) \not\in a \\
         \end{cases}& \\
     &\lambda((\_, \_, m, \_)) = m&
 \end{flalign*}
@@ -169,7 +170,8 @@ DEVS_{\textrm{Train}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right>
         & \text{\;where\;} t \text{\;is the constant train ID} \\
     \lambda(\text{request section}, p, \sigma) &= \OutMoveSectionReq{t} \\ 
     \lambda(\text{begin load unload}, p, \sigma) &= \OutUnloadPassengers{ \\
-        & \{ (o, d) | d = StationID, o, d \in \text{StationID Set} \}, \\ 
+        & \{ (o, d, n) | d = StationID, o, d \in \text{StationID Set}, \\
+        & n \in \mathbb{N}_0 \}, \\ 
         & count(p - \{ (o, d, n) | d = StationID, \\
         & \quad o, d \in \text{StationID Set}, n \in \mathbb{N}_0 \}), t}
 \end{align*}
