@@ -19,9 +19,10 @@ public class BaseExpFrame extends ViewableDigraph{
         add(_transducer);
     }
 
-    public void addLoop(SubwayLoop loopLayout, TrainGroup trainGroup, ArrayList<Integer> initialPositions) {
+    public void addLoop(SubwayLoop loopLayout, TrainGroup trainGroup, ArrayList<Integer> initialPositions, boolean logResults) {
         _transducer.setName(String.format("Transducer_%s", loopLayout.getName()));
-        Scheduler scheduler = new Scheduler("Scheduler_" + loopLayout.getName().replaceAll(" ", ""), loopLayout, trainGroup, initialPositions);
+        Scheduler scheduler = new Scheduler("Scheduler_" + loopLayout.getName().replaceAll(" ", ""),
+                loopLayout, trainGroup, initialPositions, logResults);
 
         // Add the objects to the experimental frame
         add(loopLayout);
@@ -44,7 +45,7 @@ public class BaseExpFrame extends ViewableDigraph{
     }
 
     public void addSubwaySystemLoop(SubwaySystemLoopConfig config) {
-        addLoop(config.loopLayout, config.trainGroup, config.initialPositions);
+        addLoop(config.loopLayout, config.trainGroup, config.initialPositions, config.logResults);
     }
 
     protected void coupleTrainGroupAndScheduler(TrainGroup trainGroup, Scheduler scheduler) {
@@ -80,29 +81,28 @@ public class BaseExpFrame extends ViewableDigraph{
         return new SubwaySystemLoopConfig.Builder().with($ -> {
             $.loopName = "Scarborough";
             $.trackLengths = new ArrayList<>(Arrays.asList(
-                    // Kennedy (East) to McCowan (East) (includes track section from Kennedy (West) to Kennedy (East)
-                    3, 2, 1, 1, 1, 1,
+                    // Kennedy (East) to McCowan (East)
+                    3, 2, 1, 1, 1,
                     // McCowan (West) to Kennedy (West)
-                    1, 1, 1, 2, 3, 1
+                    1, 1, 1, 2, 3
             ));
             $.stationData = new Object[][]{
                     // Station Name, Passenger Creation Rate
-                    {"Kennedy (East)", 13 /* 17,969 */},
+                    {"Kennedy", 13 /* 17,969 */},
                     {"Lawrence East (East)", 3 /* 4,326 */},
                     {"Ellesmere (East)", 1 /* 864 */},
                     {"Midland (East)", 1 /* 1,358 */},
                     {"Scarborough Centre (East)", 8 /* 10,979 */},
-                    {"McCowan (East)", 0},
-                    {"McCowan (West)", 2 /* 2,857 */},
+                    {"McCowan", 2 /* 2,857 */},
                     {"Scarborough Centre (West)" , 8},
                     {"Midland (West)", 1},
                     {"Ellesmere (West)", 1},
                     {"Lawrence East (West)", 3},
-                    {"Kennedy (West)", 0}
             };
             $.trainGroupName = "Trains";
             $.trainNames = trainNames;
             $.trainPositions = trainPositions;
+            $.logResults = false;
         });
     }
 }
