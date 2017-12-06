@@ -28,6 +28,9 @@ public class Station extends ViewableAtomic {
 	
 	// Store a list of destination stations
     protected ArrayList<UUID> _destinations;
+    
+    // Output port to report number of passengers waiting
+    protected static final String OUT_PASSENGERS_LEFT_WAITING_PORT = "Passengers Waiting";
 
     // Unique ID
 	private final UUID _id;
@@ -260,6 +263,9 @@ public class Station extends ViewableAtomic {
 			
 			// Passengers have been passed along, so we can clear the list
 			passengersToBoard.clear();
+		}
+		else if (phaseIs("Stop")) {
+			m.add(makeContent(Station.OUT_PASSENGERS_LEFT_WAITING_PORT, new intEnt(this.passengers.size())));
 		}
 		
 		return m;

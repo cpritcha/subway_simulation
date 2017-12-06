@@ -15,6 +15,7 @@ public class Transducer extends ViewableAtomic {
 	protected double clock;
 	protected double total_ta;
 	private int totalPassengersDelivered;
+	private int totalPassengersLeftWaiting;
 	private int totalLoadUnloadDelayTime;
 	private int delayLoadUnloadTimeCount;
 	private int nonzeroLoadUnloadDelayTimeCount;
@@ -41,6 +42,7 @@ public class Transducer extends ViewableAtomic {
 		addInport(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
 		addInport(Train.OUT_WAIT_TIME_PORT);
 		addInport(Train.OUT_DELAY_TIME_PORT);
+		addInport(Station.OUT_PASSENGERS_LEFT_WAITING_PORT);
 		
 		// Output ports
 		addOutport(OUT_STOP);
@@ -53,6 +55,7 @@ public class Transducer extends ViewableAtomic {
 		clock = 0;
 		total_ta = 0;
 		totalPassengersDelivered = 0;
+		totalPassengersLeftWaiting = 0;
 
 		totalLoadUnloadDelayTime = 0;
 		delayLoadUnloadTimeCount = 0;
@@ -92,14 +95,30 @@ public class Transducer extends ViewableAtomic {
 				totalTransitDelayTime += delay;
 				delayTransitTimeCount += 1;
 			}
+			if (messageOnPort(x,Station.OUT_PASSENGERS_LEFT_WAITING_PORT,k)) {
+				intEnt passengersWaiting = (intEnt)x.getValOnPort(Station.OUT_PASSENGERS_LEFT_WAITING_PORT, k);
+				System.out.println("Got passengers waiting: "+passengersWaiting.getv());
+				totalPassengersLeftWaiting += passengersWaiting.getv();
+			}
+		}
+		if (phaseIs("shutdown")) {
+			// End the shutdown
+			holdIn("shutdown",0);
 		}
 	}
 
 	public void deltint() {
 		clock = clock + sigma;
-		passivate();
-		show_state();
-		saveResultsToFile();
+		if (phaseIs("active")) {
+			// Go to a different phase where we
+			// wait for output from the stations
+			passivateIn("shutdown");
+		}
+		else {
+			passivate();
+			show_state();
+			saveResultsToFile();
+		}
 	}
 
 	public message out() {
@@ -121,13 +140,14 @@ public class Transducer extends ViewableAtomic {
 			 BufferedWriter bw = new BufferedWriter(logWriter);
 			 PrintWriter out = new PrintWriter(bw)) {
 			if (!exists) {
-				out.print(String.format("%s,%s,%s,%s,%s,%s,%s\n",
-						"Name", "Passengers Carried",
+				out.print(String.format("%s,%s,%s,%s,%s,%s,%s,%s\n",
+						"Name", "Passengers Carried","Passengers Waiting",
 						"Accumulated Load Unload Delays", "Average Load Unload Delay", "Average Load Unload Nonzero Delay",
 						"Total Transit Delay", "Average Transit Delay"));
 			}
-			out.print(String.format("%s,%d,%d,%.4f,%.4f,%.4f,%.4f\n",
-					getName(), totalPassengersDelivered, totalLoadUnloadDelayTime,
+			out.print(String.format("%s,%d,%d,%d,%.4f,%.4f,%.4f,%.4f\n",
+					getName(), totalPassengersDelivered, totalPassengersLeftWaiting,
+					totalLoadUnloadDelayTime,
 					totalLoadUnloadDelayTime /(double) delayLoadUnloadTimeCount,
 					totalLoadUnloadDelayTime /(double) nonzeroLoadUnloadDelayTimeCount,
 					totalTransitDelayTime, totalTransitDelayTime /(double) delayTransitTimeCount));
@@ -140,6 +160,7 @@ public class Transducer extends ViewableAtomic {
 		System.out.println("State of " + name + ": ");
 		System.out.println("phase, sigma: " + phase + ", " + sigma + " ");
 		System.out.println("Total Passengers Carried: "+totalPassengersDelivered);
+		System.out.println("Total passengers left waiting: "+totalPassengersLeftWaiting);
 		System.out.println("Total Accumulated Loading and Unloading Delay Time: "+ totalLoadUnloadDelayTime +" minutes");
 		System.out.println("Overall Average Loading and Unloading Delay Time: "+ totalLoadUnloadDelayTime /(double) delayLoadUnloadTimeCount);
 		System.out.println("Average Loading and Unloading Non-zero Delay Time: "+ totalLoadUnloadDelayTime /(double) nonzeroLoadUnloadDelayTimeCount);

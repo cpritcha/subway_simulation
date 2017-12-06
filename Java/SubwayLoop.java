@@ -30,6 +30,7 @@ public class SubwayLoop extends ViewableDigraph {
 		addOutport(Train.IN_PASSENGER_LOAD_PORT);
 		addOutport(TrackSection.OUT_ACQUIRE_PORT);
 		addOutport(TrackSection.OUT_RELEASE_PORT);
+		addOutport(Station.OUT_PASSENGERS_LEFT_WAITING_PORT);
 
 		// Build the loop composed of stations and tracks.
 		// We start with a station and end with a track.
@@ -60,6 +61,7 @@ public class SubwayLoop extends ViewableDigraph {
 			addCoupling(currentStation,Train.IN_PASSENGER_LOAD_PORT,this,Train.IN_PASSENGER_LOAD_PORT);
 			addCoupling(currentTrack,TrackSection.OUT_ACQUIRE_PORT,this,TrackSection.OUT_ACQUIRE_PORT);
 			addCoupling(currentTrack,TrackSection.OUT_RELEASE_PORT,this,TrackSection.OUT_RELEASE_PORT);
+			addCoupling(currentStation,Station.OUT_PASSENGERS_LEFT_WAITING_PORT,this,Station.OUT_PASSENGERS_LEFT_WAITING_PORT);
 			
 			add(currentStation);
 			add(currentTrack);
