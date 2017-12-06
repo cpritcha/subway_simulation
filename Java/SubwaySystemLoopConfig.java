@@ -13,6 +13,7 @@ public class SubwaySystemLoopConfig {
     public SubwayLoop loopLayout;
     public TrainGroup trainGroup;
     public ArrayList<Integer> initialPositions;
+    public boolean logResults;
 
     public static class Builder {
         public String loopName;
@@ -25,6 +26,7 @@ public class SubwaySystemLoopConfig {
         public UniformRandom delayTimeDistribution;
         public double delayProbability;
         public Random random;
+        public boolean logResults;
 
         public Builder with(
                 Consumer<Builder> builderFunction) {
@@ -35,14 +37,14 @@ public class SubwaySystemLoopConfig {
         public SubwaySystemLoopConfig createSubwaySystemLoop() {
             return new SubwaySystemLoopConfig(loopName, trackLengths, stationData,
                     trainGroupName, trainNames, trainPositions, loadingTimeDistribution,
-                    delayProbability, delayTimeDistribution, random);
+                    delayProbability, delayTimeDistribution, random, logResults);
         }
     }
 
     public SubwaySystemLoopConfig(String loopName, List<Integer> trackLengths, Object[][] stationData,
                                   String trainGroupName, ArrayList<String> trainNames, ArrayList<Integer> initialPositions,
                                   UniformRandom loadingTimeDistribution, double delayProbability,
-                                  UniformRandom delayTimeDistribution, Random random) {
+                                  UniformRandom delayTimeDistribution, Random random, boolean logResults) {
         ArrayList<TrackSection> trackSections = TrackSection.createTracks(trackLengths);
         ArrayList<Station> stations = Station.Builder.fromData(stationData, random).stream()
                 .map(Station.Builder::createStation)
@@ -51,5 +53,6 @@ public class SubwaySystemLoopConfig {
         trainGroup = new TrainGroup(trainGroupName, trainNames, loadingTimeDistribution,
                 delayProbability, delayTimeDistribution);
         this.initialPositions = initialPositions;
+        this.logResults = logResults;
     }
 }

@@ -11,7 +11,7 @@ labels = {0:'Kennedy',2:'Lawrence East',4:'Ellesmere',6:'Midland',8:'Scarborough
 def format_yticks(tick_val,tick_pos):
     if int(tick_val) in xs:
         return labels[int(tick_val)]
-    else: 
+    else:
         return ''
 
 def plotSchedule(filename, data):
@@ -19,9 +19,9 @@ def plotSchedule(filename, data):
     names = data['f1']
     locationData = data['f2']
 
-    # alter the location numbers above 12 to count back down
-    indices = np.where(locationData>10)
-    locationData[indices] = 22-locationData[indices]
+    # alter the location numbers above 10 to count back down
+    indices = np.where(locationData>8)
+    locationData[indices] = 20-locationData[indices]
 
     # Convert the names to strings
     names = np.array([n.decode('utf-8') for n in names])
@@ -48,12 +48,13 @@ def plotSchedule(filename, data):
 
     fig.gca().yaxis.set_major_formatter(FuncFormatter(format_yticks))
     fig.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-    fig.savefig('{}.png'.format(filename))
+    fig.savefig('{}.png'.format(filename), bbox_inches='tight')
     fig.show()
 
 if __name__=='__main__':
-    for path in ['Scheduler_ExpFrame4TrainsNoDelays.log', 'Scheduler_ExpFrame4TrainsWithDelays.log', 
-        'Scheduler_ExpFrame6TrainsNoDelays.log', 'Scheduler_ExpFrame6TrainsWithDelays.log']:
+    for path in ['Scheduler_ExpFrame4TrainsNoDelays.log', 'Scheduler_ExpFrame4TrainsWithDelays.log',
+                 'Scheduler_ExpFrame6TrainsNoDelays.log', 'Scheduler_ExpFrame6TrainsWithDelays.log',
+                 'Scheduler_ExpFrame8TrainsNoDelays.log', 'Scheduler_ExpFrame8TrainsWithDelays.log']:
         data = np.genfromtxt(os.path.join('../data', path),skip_header=1,dtype=None)
         name, ext = os.path.splitext(path)
         plotSchedule(name, data)

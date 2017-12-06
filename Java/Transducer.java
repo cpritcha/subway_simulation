@@ -40,6 +40,7 @@ public class Transducer extends ViewableAtomic {
 		// Input ports
 		addInport(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
 		addInport(Train.OUT_WAIT_TIME_PORT);
+		addInport(Train.OUT_DELAY_TIME_PORT);
 		
 		// Output ports
 		addOutport(OUT_STOP);
@@ -120,12 +121,12 @@ public class Transducer extends ViewableAtomic {
 			 BufferedWriter bw = new BufferedWriter(logWriter);
 			 PrintWriter out = new PrintWriter(bw)) {
 			if (!exists) {
-				out.print(String.format("%s, %s, %s, %s, %s, %s, %s\n",
+				out.print(String.format("%s,%s,%s,%s,%s,%s,%s\n",
 						"Name", "Passengers Carried",
 						"Accumulated Load Unload Delays", "Average Load Unload Delay", "Average Load Unload Nonzero Delay",
 						"Total Transit Delay", "Average Transit Delay"));
 			}
-			out.print(String.format("%s, %d, %d, %.4f, %.4f, %.4f, %.4f\n",
+			out.print(String.format("%s,%d,%d,%.4f,%.4f,%.4f,%.4f\n",
 					getName(), totalPassengersDelivered, totalLoadUnloadDelayTime,
 					totalLoadUnloadDelayTime /(double) delayLoadUnloadTimeCount,
 					totalLoadUnloadDelayTime /(double) nonzeroLoadUnloadDelayTimeCount,
