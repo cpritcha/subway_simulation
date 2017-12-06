@@ -288,7 +288,7 @@ ta(s) &= \Delta t \\
 ta(\text{``passive''}) &= \infty \\
 \end{align*}
 
-\subsection{Experimentation}\label{section:experiment_setup}
+\subsection{Baseline Experimental Setup}\label{section:experiment_setup}
 The Toronto Transit Commission (TTC) posts a large amount of data on the internet for their multiple forms of public transit.~\cite{ttcdata} Data available includes ridership, revenues, station usage, routes, and schedules.  Because the data available aids in choosing many quantities relative to this DEVS simulation, the TTC Scarborough Line is chosen as the basis for study.  Figure~\ref{fig:subwaymap} shows a map of this subway line.  It consists of six stations, is labeled line number three, and is colored blue.
 %
 \begin{figure}[htb]
@@ -312,6 +312,25 @@ The Scarborough line as represented in this simulation is shown in Fig.~\ref{fig
 	\caption{TTC Travel Time Calculator~\cite{subwaytimes}}
 	\label{fig:traveltimes}
 \end{figure}
+
+The most recent ridership data available for the Scarborough line is from 2015. Reference~\citen{ridershipdata} provides the number of passengers leaving and arriving at each station on an average business day.  For the Scarborough line, these values are provided in Table~\ref{table:ridership}.  To get the passenger generation rates, the average daily passengers to the trains are assumed over a twelve hour period.  So dividing the daily passengers by the number of minutes in an hour gives an initial rate.  With this rate, early experimentation showed there was plenty of capacity on the trains.  So double that initial rate is used to simulate more of a rush hour level of passengers.
+%
+\begin{table}[htb]
+	\centering
+	\begin{tabular}{c|c|c}
+		\textbf{Station} & \textbf{Average Daily} & \textbf{Applied Passenger Generation} \\
+		                 & \textbf{Passengers to Train} & \textbf{Rate (Passengers/minute)} \\
+		\hline\hline
+		Kennedy & 17,969 & 26 \\
+		Lawrence East & 4,326 & 6 \\
+		Ellesmere & 864 & 2 \\
+		Midland & 1,358 & 2 \\
+		Scarborough Centre & 10979 & 16 \\
+		McCowan & 2,857 & 4 \\
+	\end{tabular}
+\caption{Scarborough Line Ridership Details~\cite{ridershipdata}}
+\label{table:ridership}
+\end{table}
 
 %The primary experiments will focus on disruptions in service due to train maintenance issues.  Given a train breakdown that causes a blockage on one of the tracks, we shall examine the effectiveness of a meet and pass routine.  Effectiveness shall be judged by the ability of the trains to pass by switching tracks without causing a deadlock, without causing significant delays in trains traveling in the opposite direction due to the track switching, and by monitoring passenger counts at the stations.  Monitoring the passenger counts is to evaluate that the service disruption does not cause a severe sustained surge in passengers waiting to board.  Another experiment will look at the effect of passenger surges at a given station, during rush hour for example, and the subway network's ability to maintain train movement given the increased loading and unloading times due to the surge. 
 
