@@ -48,7 +48,7 @@ def plotSchedule(filename, data):
 
     fig.gca().yaxis.set_major_formatter(FuncFormatter(format_yticks))
     fig.gca().yaxis.set_major_locator(MaxNLocator(integer=True))
-    fig.savefig('{}.png'.format(filename), bbox_inches='tight')
+    fig.savefig('../Report/images/{}.png'.format(filename), bbox_inches='tight')
     fig.show()
 
 if __name__=='__main__':

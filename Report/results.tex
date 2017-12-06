@@ -1,12 +1,62 @@
 \section{Results}
 
-Four different experiments were conducted to determine the impact of the number
-of trains and delays 
+Summary statistics of the six different experiments are shown in table
+~\ref{tab:experiment_results}. Each subway system simulation is run for two
+hours (simulated time) 50 times to get information on the variability of
+simulation runs. Passengers carried is a count and delay statistics are 
+measured in minutes.
 
 % In order to add results you must run doc/result_processing.ipynb in order to generate
 % experiment_result_table.png
 \begin{sidewaystable}
     \centering
-    \caption{Experiment Comparison}
-    \input{experiment_result_table.tex}
+    \caption{Experiment Comparison (50 replications each)}
+    \input{experiment_result_table.tex}\label{tab:experiment_results}
 \end{sidewaystable}
+
+Experiment results match expectations. Introducing uniformly distributed zero
+to three minute delays reduces the number of passengers that can be served in
+two hours. Increasing the number of trains increases the number of passengers
+served. Variable transit delays increase the variability of the system.
+
+The schedule plots below show the trajectory of the trains on the Scarborough
+line. Notice that trains heading in the same direction do not cross one
+another. This means that there are no collisions in our simulation. Also notice
+that the trajectories with delays have lower slopes than others for which
+indicates a delay traveling from one station to another.
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame4TrainsNoDelays.png}
+	\caption{Scarborough line with 4 trains and no delays}\label{fig:4trainsNoDelay}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame4TrainsWithDelays.png}
+	\caption{Scarborough line with 4 trains and delays}\label{fig:4trainsWithDelay}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame6TrainsNoDelays.png}
+	\caption{Scarborough line with 6 trains and no delays}\label{fig:6trainsNoDelay}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame6TrainsWithDelays.png}
+	\caption{Scarborough line with 6 trains and delays}\label{fig:6trainsWithDelay}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame8TrainsNoDelays.png}
+	\caption{Scarborough line with 8 trains and no delays}\label{fig:8trainsNoDelay}
+\end{figure}
+
+\begin{figure}[tb]
+	\centering
+	\includegraphics[width=6.0in]{Scheduler_ExpFrame8TrainsWithDelays.png}
+	\caption{Scarborough line with 8 trains and delays}\label{fig:8trainsWithDelay}
+\end{figure}
