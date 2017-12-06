@@ -42,6 +42,9 @@ public class BaseExpFrame extends ViewableDigraph{
         
         // Couple the transducer to the train group
         addCoupling(_transducer, Transducer.OUT_STOP, trainGroup, Train.IN_STOP);
+        
+        // Couple the transducer to the station loop
+        addCoupling(_transducer, Transducer.OUT_STOP, loopLayout, Transducer.OUT_STOP);
     }
 
     public void addSubwaySystemLoop(SubwaySystemLoopConfig config) {
@@ -88,12 +91,12 @@ public class BaseExpFrame extends ViewableDigraph{
             ));
             $.stationData = new Object[][]{
                     // Station Name, Passenger Creation Rate
-                    {"Kennedy", 13 /* 17,969 */},
+                    {"Kennedy", 26 /* 17,969 */},
                     {"Lawrence East (East)", 3 /* 4,326 */},
                     {"Ellesmere (East)", 1 /* 864 */},
                     {"Midland (East)", 1 /* 1,358 */},
                     {"Scarborough Centre (East)", 8 /* 10,979 */},
-                    {"McCowan", 2 /* 2,857 */},
+                    {"McCowan", 4 /* 2,857 */},
                     {"Scarborough Centre (West)" , 8},
                     {"Midland (West)", 1},
                     {"Ellesmere (West)", 1},

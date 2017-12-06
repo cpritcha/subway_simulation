@@ -45,6 +45,7 @@ public class Station extends ViewableAtomic {
 
 		// Add the input ports
 		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
+		addInport(Transducer.OUT_STOP);
 		
 		// Add the output ports
 		addOutport(Train.IN_PASSENGER_LOAD_PORT);
@@ -129,6 +130,13 @@ public class Station extends ViewableAtomic {
 		clock = clock + e;
 		Continue(e);
 		
+		for (int k=0; k<x.size(); k++) {
+			if (messageOnPort(x,"Stop",k)) {
+				// Immediately stop
+				holdIn("Stop",0);
+			}
+		}
+		
 		// First ensure we're starting from the
 		// passive phase so we don't interrupt
 		// another phase
@@ -173,6 +181,12 @@ public class Station extends ViewableAtomic {
 		if (phaseIs("Unloading Passengers")) {
 			// Move immediately to generating passengers for the train to load
 			holdIn("Boarding Passengers",0);
+		}
+		else if (phaseIs("Stop")) {
+			// Print the number of waiting passengers remaining
+			System.out.println("Station "+this.name+" has "+
+					this.passengers.size()+" waiting passengers remaining");
+			passivate();
 		}
 		else {
 			passivate();

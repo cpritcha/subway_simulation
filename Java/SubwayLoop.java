@@ -24,6 +24,7 @@ public class SubwayLoop extends ViewableDigraph {
 		addInport(Train.OUT_PASSENGER_UNLOAD_PORT);
 		addInport(TrackSection.IN_ACQUIRE_PORT);
 		addInport(TrackSection.IN_RELEASE_PORT);
+		addInport(Transducer.OUT_STOP);
 		
 		// Add the outports
 		addOutport(Train.IN_PASSENGER_LOAD_PORT);
@@ -53,6 +54,7 @@ public class SubwayLoop extends ViewableDigraph {
 			addCoupling(this,Train.OUT_PASSENGER_UNLOAD_PORT,currentStation,Train.OUT_PASSENGER_UNLOAD_PORT);
 			addCoupling(this,TrackSection.IN_ACQUIRE_PORT,currentTrack,TrackSection.IN_ACQUIRE_PORT);
 			addCoupling(this,TrackSection.IN_RELEASE_PORT,currentTrack,TrackSection.IN_RELEASE_PORT);
+			addCoupling(this,Transducer.OUT_STOP,currentStation,Transducer.OUT_STOP);
 			
 			// Couple the outports
 			addCoupling(currentStation,Train.IN_PASSENGER_LOAD_PORT,this,Train.IN_PASSENGER_LOAD_PORT);
