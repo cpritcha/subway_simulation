@@ -3,8 +3,8 @@
 Summary statistics of the six different experiments are shown in table
 ~\ref{tab:experiment_results}. Each subway system simulation is run for two
 hours (simulated time) 50 times to get information on the variability of
-simulation runs. Passengers carried is a count and delay statistics are 
-measured in minutes.
+simulation runs. Passengers carried and passengers waiting are counts and 
+delay statistics are measured in minutes.
 
 % In order to add results you must run doc/result_processing.ipynb in order to generate
 % experiment_result_table.png
@@ -15,9 +15,12 @@ measured in minutes.
 \end{sidewaystable}
 
 Experiment results match expectations. Introducing uniformly distributed zero
-to three minute delays reduces the number of passengers that can be served in
-two hours. Increasing the number of trains increases the number of passengers
-served. Variable transit delays increase the variability of the system.
+to three minute delays slightly reduces the number of passengers that can be 
+served in two hours. Increasing the number of trains increases the number of 
+passengers served. Variable transit delays increase the variability of the system.
+Passengers carried plus passengers waiting are approximately equal across all
+experiments which makes sense because passengers are being generates at the
+same rate for all the experiments run.
 
 The schedule plots below show the trajectory of the trains on the Scarborough
 line. Notice that trains heading in the same direction do not cross one
