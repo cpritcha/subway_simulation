@@ -10,17 +10,24 @@ import view.simView.SimView;
 public class RunSimulation {
     public static void main(String[] args) {
         boolean logResults = false;
-        for (int i = 0; i < 20; i++) {
+        for (int i = 0; i < 50; i++) {
             runInstance(new ExpFrame4TrainsNoDelays(logResults));
             runInstance(new ExpFrame6TrainsNoDelays(logResults));
+            runInstance(new ExpFrame8TrainsNoDelays(logResults));
+
             runInstance(new ExpFrame4TrainsWithDelays(logResults));
             runInstance(new ExpFrame6TrainsWithDelays(logResults));
+            runInstance(new ExpFrame8TrainsWithDelays(logResults));
         }
         logResults = true;
+
         runInstance(new ExpFrame4TrainsNoDelays(logResults));
         runInstance(new ExpFrame6TrainsNoDelays(logResults));
+        runInstance(new ExpFrame8TrainsNoDelays(logResults));
+
         runInstance(new ExpFrame4TrainsWithDelays(logResults));
         runInstance(new ExpFrame6TrainsWithDelays(logResults));
+        runInstance(new ExpFrame8TrainsWithDelays(logResults));
     }
 
     public static <T extends BaseExpFrame> void runInstance(T exp) {

@@ -53,7 +53,8 @@ def plotSchedule(filename, data):
 
 if __name__=='__main__':
     for path in ['Scheduler_ExpFrame4TrainsNoDelays.log', 'Scheduler_ExpFrame4TrainsWithDelays.log',
-        'Scheduler_ExpFrame6TrainsNoDelays.log', 'Scheduler_ExpFrame6TrainsWithDelays.log']:
+                 'Scheduler_ExpFrame6TrainsNoDelays.log', 'Scheduler_ExpFrame6TrainsWithDelays.log',
+                 'Scheduler_ExpFrame8TrainsNoDelays.log', 'Scheduler_ExpFrame8TrainsWithDelays.log']:
         data = np.genfromtxt(os.path.join('../data', path),skip_header=1,dtype=None)
         name, ext = os.path.splitext(path)
         plotSchedule(name, data)
