@@ -26,7 +26,8 @@ P_w &= \text{Waiting passenger list} \\
 P_l &= \text{List of passengers to load} \\
 C &= \text{Passenger capacity of current train} \\
 ID &= \text{Unique station identifier} \\
-X &= \lbrace(\text{``Unload Passengers''},\lbrace P, C|C\in\mathbb{N}_0\rbrace)\rbrace \\
+X &= \lbrace(\text{``Unload Passengers''},\lbrace P, C|C\in\mathbb{N}_0\rbrace) \\
+ & (\text{``Stop''},True)\rbrace \\
 Y &= \lbrace(\text{``Load Passengers''},\lbrace P_l|\ |P_l|\leq C, P_l\subseteq P_w\rbrace\cup\emptyset)\rbrace \\
 S_{clock} &= \mathbb{R}_0^+ \\ 
 S_{timeOfLastPassengerCreation} &= \mathbb{R}_0^+ \\
@@ -38,11 +39,14 @@ S &= S_{action}\times S_{clock}\times \\
  & S_{timeOfLastPassengerCreation}\times S_{waitingPassengers} \\
  & S_{loadingPassengers}\times \mathbb{R}_0^+ \\
 \delta_{ext}(\text{``passive''},e,(\text{``Unload Passsengers''},\lbrace u|u\in\mathbb{N}_0\rbrace)) &= (\text{``Unload Passengers''},0,\lbrace P, C\rbrace) \\
+\delta_{ext}(\text{``passive''},e,(\text{``Stop''})) &= (\text{``Stop''},0) \\
+\delta_{int}(\text{``Stop''}) &= \text{``passive''} \\
 \delta_{int}(\text{``passive''}) &= \text{``passive''} \\
 \delta_{int}(\text{``Unload Passengers''},\sigma) &= (\text{``Load Passengers''},0,\lbrace ID, P\rbrace)\rbrace\ \\
 \delta_{int}(\text{``Load Passengers''},\sigma) &= (\text{``passive''}) \\
 \delta_{con}(s,ta(s),x) &= \delta_{ext}(\delta_{int}(s),0,x) \\
 \lambda(\text{``Load Passengers''}) &= \lbrace ID,\lbrace P, |P|\leq C\rbrace\cup\emptyset\rbrace \\
+\lambda(\text{``Stop''}) &= \mathbb{N}_0^+ \\
 ta(s) &= 0 \\
 ta(``passive'') &= \infty \\
 \end{align*}
@@ -271,20 +275,25 @@ To store the train positions over time, rather than send each train position to 
 The scheduler processes all messages on all input ports before changing phase.  This all happens with zero time advance as all time advancement occurs in the train models.  In the external transition function, the model loops through all of the input ports and processes each of the messages on a given port.  When necessary, for example when a train has requested to move and the scheduler needs to respond, any output messages are generated and stored before the output function is called.  The output function then sends messages on all of the output ports at the same time.  This approach ensures that if multiple trains are arriving at different locations simultaneously, the scheduler is able to respond to each and every input it receives.  After all of the input ports have been processed, the scheduler then attempts to move each train in the waiting queue.
 
 \subsection{Transducer Model}
-The DEVS specification for the transducer model is given below.  The transducer model is used to collect some data about the entire subway system simulation and print some representative statistics. Each time a train provides passengers to the scheduler for unloading at a station, the scheduler will send the number of unloaded passengers to the transducer.  Since the stations produce passengers at a fixed rate, running various experiments over the same amount of time and examining the total number of passengers delivered to their destinations provides some insight on the total system passenger capacity.  If the system experiences significant delays, then the total number of passengers delivered is expected to go down.  Each train also maintains an internal clock to compute its own wait times. Every time the train is given a command to move by the scheduler, it provides its latest wait time to the transducer.  The transducer then provides a total sum of minutes waited by all trains in the system.  It also computes two averages.  The first average wait time uses all wait times provided, inclusive of zero values.  The second average wait time only uses non-zero wait times, meaning if and when there is a delay, this is the average of those delays.  Upon reaching the specified transducer observation time, it emits a stop signal to all of the trains that passivates them and ends the simulation.  Without this stop signal, the trains would run in perpetuity, making specific experimental observations difficult.
+The DEVS specification for the transducer model is given below.  The transducer model is used to collect some data about the entire subway system simulation and print some representative statistics. Each time a train provides passengers to the scheduler for unloading at a station, the scheduler will send the number of unloaded passengers to the transducer.  Since the stations produce passengers at a fixed rate, running various experiments over the same amount of time and examining the total number of passengers delivered to their destinations provides some insight on the total system passenger capacity.  If the system experiences significant delays, then the total number of passengers delivered is expected to go down.  Each train also maintains an internal clock to compute its own wait times. Every time the train is given a command to move by the scheduler, it provides its latest wait time to the transducer.  The transducer then provides a total sum of minutes waited by all trains in the system.  It also computes two averages.  The first average wait time uses all wait times provided, inclusive of zero values.  The second average wait time only uses non-zero wait times, meaning if and when there is a delay, this is the average of those delays.  Upon reaching the specified transducer observation time, it emits a stop signal to all of the trains and stations that passivates them and ends the simulation.  Without this stop signal, the trains would run in perpetuity, making specific experimental observations difficult. Rather than going from an active to passive phase itself, the transducer enters an intermediate shutdown phase while it waits for final outputs from the stations that provide how many passengers are left waiting in each of the stations at the end of the simulation.  Once these values are received, the transducer enters the passive phase and the simulation officially ends.  Just prior to entering the passive phase, the transducer also writes a file containing all of the statistics it has collected about the simulation.  Upon further executions of the simulation, because of the random variations that have implemented, the transducer appends, not overwrites, this results file so multiple simulations can be directly compared.
 \begin{align*} DEVS_{\textrm{Transducer}} &= \left<X,Y,S,\delta_{ext},\delta_{int},\lambda,ta\right> \\
 \Delta t &= \text{Observation Time} \\
 X &= \lbrace (\text{``N Passengers Delivered''},(\mathbb{N}_0^+)), \\
- & (\text{``Wait Time''},(\mathbb{R}_0^+))\rbrace \\
+ & (\text{``Wait Time''},(\mathbb{R}_0^+)) \\
+ & (\text{``Delay Time''},(\mathbb{R}_0^+)) \\
+ & (\text{``Passengers Left Waiting''},(\mathbb{N}_0^+))\rbrace \\
 Y &= \lbrace(\text{``Stop''},\lbrace True\rbrace)\rbrace \\
 S &= \lbrace\text{``active'', ``passive''}\rbrace\times\Delta t \\
 \delta_{ext}(\text{``active''},e,(\text{``N Passengers Delivered''},\mathbb{N}_0^+)) &= (\text{``active''},\sigma-e) \\
 \delta_{ext}(\text{``active''},e,(\text{``Wait Time''},\mathbb{R}_0^+)) &= (\text{``active''},\sigma-e) \\
-\delta_{int}(\text{``active''}) &= \text{``passive''} \\
+\delta_{ext}(\text{``shutdown''},e,(\text{``Passengers Left Waiting''},\mathbb{N}_0^+)) &= (\text{``shutdown''},0) \\
+\delta_{int}(\text{``active''}) &= (\text{``shutdown''},\infty) \\
+\delta_{int}(\text{``shutdown''}) &= \text{``passive''} \\
 \delta_{int}(\text{``passive''}) &= \text{``passive''} \\
 \delta_{con}(s,ta(s),x) &= \delta_{ext}(\delta_{int}(s),0,x) \\
 \lambda(\text{``active''}) &= (\text{``Stop''},True) \\
-ta(s) &= \Delta t \\
+ta(\text{``active''}) &= \Delta t \\
+ta(\text{``shutdown''}) &= \lbrace 0,\infty\rbrace \\
 ta(\text{``passive''}) &= \infty \\
 \end{align*}
 
@@ -334,8 +343,9 @@ The most recent ridership data available for the Scarborough line is from 2015. 
 
 Reference~\citen{trainCapacity} offers some insight on the baseline train configuration for the Scarborough line.  The trains are known as the S-series trains and have a capacity of 30 seated and 55 standing passengers per train.  Currently, there are 6 four-car trains operating on the Scarborough line.
 
+\FloatBarrier
 \subsection{Simulation Assembly}
 The atomic models and digraphs developed for this simulation are not limited to a single subway loop within an experimental frame.  A single experimental frame can be configured to run multiple subway lines concurrently.  Each loop will have a collection of trains contained within a \texttt{TrainGroup}, a collection of track sections and stations in a \texttt{SubwayLoop} instance, and a \texttt{Scheduler} instance.  This \texttt{TrainGroup}, \texttt{SubwayLoop}, and \texttt{Scheduler} combination can be duplicated a number of times within an experimental frame.  Coupling of the loops would come with further development of the track sections and implementation of the semaphores in all of the necessary classes.  Track sections, or rather references to track section instances, could then be shared amongst the \texttt{SubwayLoop} instances to fully couple the different loops together.  The semaphore implementation could also be extended to the \texttt{Station} class to have stations shared amongst different loops.
 
 \subsection{Experimental Parameters}
-The quantities varied for the experimental results presented here are the number of trains and the delays incurred.  Delays are applied in two forms: passenger load and unload times at the stations can be randomly varied, and an additional in-transit delay, which also varies randomly within a specified range. Given the constant travel times between stations, the random delays are meant to introduce random variability in the system such that trains must wait for one another.  This could lead to multiple trains waiting on one another and result in significant overall delays.  The load and unload times are variable with each load and unload event.  The in-transit delays are variable in magnitude, but are also applied with a specified probability of occurring. Varying the number of trains could either result in not enough passenger capacity (too few trains) or increased delay times (too many trains causing congestion).  Experiments are run with four, six, and eight trains on the loop.  For each train count, a simulation was run with and without in-transit delays. For all experiments the minimum load and unload time is 15 seconds, with a uniform random component of up to an additional 195 seconds.  For experiments with in-transit delays, the probability of an in-transit delay is 0.2 with a uniform delay magnitude of up to three minutes.
+The quantities varied for the experimental results presented here are the number of trains and the delays incurred.  Delays are applied in two forms: passenger load and unload times at the stations can be randomly varied, and an additional in-transit delay, which also varies randomly within a specified range. Given the constant travel times between stations, the random delays are meant to introduce random variability in the system such that trains must wait for one another.  This could lead to multiple trains waiting on one another and result in significant overall delays.  The load and unload times are variable with each load and unload event.  The in-transit delays are variable in magnitude, but are also applied with a specified probability of occurring. Varying the number of trains could either result in not enough passenger capacity (too few trains) or increased delay times (too many trains causing congestion).  Experiments are run with four, six, and eight trains on the loop.  For each train count, a simulation was run with and without in-transit delays. For all experiments the minimum load and unload time is 15 seconds, with a uniform random component of up to an additional 195 seconds.  For experiments with in-transit delays, the probability of an in-transit delay is 0.2 with a uniform delay magnitude of up to three minutes. One time unit in DEVS is equivalent to one minute of real-time for all simulations.  The duration of all experiments is 120 minutes.
