@@ -187,6 +187,8 @@ public class Station extends ViewableAtomic {
 		}
 		else if (phaseIs("Stop")) {
 			// Print the number of waiting passengers remaining
+			System.out.println("Station "+this.name+" created "+
+					this.totalPassengersCreated+" passengers");
 			System.out.println("Station "+this.name+" has "+
 					this.passengers.size()+" waiting passengers remaining");
 			passivate();
