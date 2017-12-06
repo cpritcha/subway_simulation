@@ -40,6 +40,7 @@ public class Transducer extends ViewableAtomic {
 		// Input ports
 		addInport(Scheduler.OUT_N_PASSENGERS_DELIVERED_PORT);
 		addInport(Train.OUT_WAIT_TIME_PORT);
+		addInport(Train.OUT_DELAY_TIME_PORT);
 		
 		// Output ports
 		addOutport(OUT_STOP);
